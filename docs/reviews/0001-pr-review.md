@@ -120,6 +120,8 @@ separately (comment on the PR): fixture served from Blobs under
   with a one-line detail ("N on board · M older in Archive") so
   `/?stage=done` works (R6). Screenshots retaken.
 
-Final state: `make check` → `check: ok`, 24 files / 323 tests. Merge
-waits on gate 3 (the engineer's `status: approved` on the plan), which
-EX-001 does not cover.
+**Final verdicts on head e3fe9b2:** security-lead *clear* (0 Important);
+ux *ship* (0 Important; one cosmetic nit left as is); tech-reviewer *code at
+merge*, PR *needs human* — gate 3. `make check` → `check: ok`, 24 files /
+323 tests, CI green on everything but "Plans on main must be approved".
+Merge under EX-001 follows the engineer's `status: approved` on the plan.
