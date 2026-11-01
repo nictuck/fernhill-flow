@@ -176,6 +176,19 @@ ${stripped ? `${stripped} string(s) containing \`@\` were stripped.` : "No strin
 
 await mkdir(resolve(ROOT, "docs"), { recursive: true });
 await mkdir(resolve(ROOT, "tests/fixtures"), { recursive: true });
-await writeFile(resolve(ROOT, "docs/baseline.md"), md);
-await writeFile(resolve(ROOT, "tests/fixtures/000-live.json"), `${fixtureText}\n`);
-console.info("spike: wrote docs/baseline.md and tests/fixtures/000-live.json");
+if (process.env.SPIKE_APPEND === "1") {
+  // Re-run (plan step 5): keep the first capture and the hand-checked
+  // fixture; append the new numbers so the two baselines sit side by side.
+  const { appendFile } = await import("node:fs/promises");
+  const rerun = `
+## Re-run ${date}
+
+Repos: ${first.snapshot.config.repos.map((r) => `\`${r.name}\``).join(", ")}. GitHub calls ${first.stats.calls} cold / ${second.stats.calls} warm (${second.stats.cached} × 304, ${pct(second.stats.cached, second.stats.calls)}); wall ${first.wallMs} ms / ${second.wallMs} ms (${pct(Math.max(first.wallMs, second.wallMs), BUDGET_MS)} of budget); rate limit consumed ${first.remainingBefore !== undefined && first.remainingAfter !== undefined ? first.remainingBefore - first.remainingAfter : "?"} cold; warnings: ${first.snapshot.warnings.length ? first.snapshot.warnings.join("; ") : "none"}.
+`;
+  await appendFile(resolve(ROOT, "docs/baseline.md"), rerun);
+  console.info("spike: appended a re-run section to docs/baseline.md (fixture untouched)");
+} else {
+  await writeFile(resolve(ROOT, "docs/baseline.md"), md);
+  await writeFile(resolve(ROOT, "tests/fixtures/000-live.json"), `${fixtureText}\n`);
+  console.info("spike: wrote docs/baseline.md and tests/fixtures/000-live.json");
+}

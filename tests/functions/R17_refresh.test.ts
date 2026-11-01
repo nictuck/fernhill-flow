@@ -2,7 +2,7 @@
 // through the Blobs lock (including the expired-lock takeover race), the
 // route is header-gated, and the log line carries the budget numbers.
 
-import { runRefresh } from "../../netlify/lib/refresh-core.ts";
+import { BASELINE_CALLS, runRefresh } from "../../netlify/lib/refresh-core.ts";
 import type { CollectContext, RefreshDeps } from "../../netlify/lib/refresh-core.ts";
 import { KEYS } from "../../netlify/lib/store.ts";
 import { makeRefreshHandler } from "../../netlify/functions/refresh.ts";
@@ -168,6 +168,29 @@ describe("R17 failure keeps the previous snapshot", () => {
     expect(r.outcome).toBe("refreshed");
     expect(h.collections()).toBe(1);
     expect(await h.store.getJSON(KEYS.previous)).toBeNull();
+  });
+});
+
+describe("R15 budget warning", () => {
+  test("a refresh above twice the measured baseline warns in the log line and the snapshot; a normal one does not", async () => {
+    const h = harness();
+    const normal = await runRefresh(h.deps());
+    expect(normal.snapshot?.warnings).toEqual([]);
+    expect(JSON.parse(h.lines[0] ?? "{}")).not.toHaveProperty("budgetWarning");
+
+    const greedy = async (ctx: CollectContext) => {
+      for (let i = 0; i <= 2 * BASELINE_CALLS; i += 1) await ctx.client.get(`${PLATFORM_PATH}?i=${i}`);
+      return makeSnapshot({ collectedAt: ctx.now() });
+    };
+    const h2 = harness();
+    for (let i = 0; i <= 2 * BASELINE_CALLS; i += 1) h2.fake.json(`${PLATFORM_PATH}?i=${i}`, { i });
+    const res = await runRefresh(h2.deps({ collectFn: greedy }));
+    expect(res.outcome).toBe("refreshed");
+    expect(res.snapshot?.warnings.some((w) => w.includes("twice the measured baseline"))).toBe(true);
+    const line = JSON.parse(h2.lines[0] ?? "{}") as Record<string, unknown>;
+    expect(line["calls"]).toBe(2 * BASELINE_CALLS + 1);
+    expect(String(line["budgetWarning"])).toContain(`baseline of ${BASELINE_CALLS}`);
+    expect(await h2.store.getJSON<{ warnings: string[] }>(KEYS.latest)).toMatchObject({ warnings: [expect.stringContaining("baseline")] });
   });
 });
 

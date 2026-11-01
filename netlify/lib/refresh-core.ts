@@ -56,6 +56,10 @@ export interface RefreshDeps {
 
 export const BUDGET_MS = 8_000;
 export const LOCK_TTL_MS = 90_000;
+/** Cold-cache GitHub calls per refresh measured by `make spike` (docs/baseline.md,
+ *  2026-11-01: two repos). A refresh above twice this logs a warning (R15);
+ *  update it when the spike is re-run after adding repos. */
+export const BASELINE_CALLS = 31;
 export const DEFAULT_FLOOR_SECONDS = 60;
 export const DEFAULT_INTERVAL_MINUTES = 10;
 
@@ -160,12 +164,18 @@ export async function runRefresh(deps: RefreshDeps): Promise<RefreshResult> {
   const collectFn = deps.collectFn ?? defaultCollect;
   try {
     const snapshot = await collectFn({ client, fetch: deps.fetch, now: deps.now, platformRepo, deadline });
+    const s = client.stats();
+    // R15: the budget is measured, not guessed — a refresh that doubles it is news.
+    const budgetWarning =
+      s.calls > 2 * BASELINE_CALLS
+        ? `refresh made ${s.calls} GitHub calls, more than twice the measured baseline of ${BASELINE_CALLS} (docs/baseline.md)`
+        : undefined;
+    if (budgetWarning) snapshot.warnings.push(budgetWarning);
     if (latest) await deps.store.setJSON(KEYS.previous, latest);
     await deps.store.setJSON(KEYS.latest, snapshot);
     await deps.store.delete(KEYS.lastError);
     client.pruneCache();
     await deps.store.setJSON(KEYS.etags, client.etagCache());
-    const s = client.stats();
     log({
       outcome: "refreshed",
       calls: s.calls,
@@ -175,6 +185,7 @@ export async function runRefresh(deps: RefreshDeps): Promise<RefreshResult> {
       remaining: s.remaining ?? null,
       snapshotAt: snapshot.collectedAt,
       warnings: snapshot.warnings.length,
+      ...(budgetWarning ? { budgetWarning } : {}),
     });
     return { outcome: "refreshed", snapshot };
   } catch (err) {
