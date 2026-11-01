@@ -43,7 +43,7 @@ round-trip `src/fixtures/sample.json` through the store, so previews and
 
 | Name | Where | Contexts | Value | Expiry / rotation |
 |------|-------|----------|-------|-------------------|
-| `GITHUB_TOKEN` | Netlify env var | `production`, `main` branch-deploy only (never previews) | fine-grained PAT, *Selected repositories* = platform + products, permissions Metadata, Contents, Pull requests, Actions, Deployments: **read** | ≤ 90 days; release manager rotates; recorded in `releases/` before the change |
+| `GITHUB_TOKEN` | Netlify env var | scopes `Production` and *Branch deploys → specific branch `main`* only — never all branch deploys, never deploy previews | fine-grained PAT, *Selected repositories* = platform + products, permissions Metadata, Contents, Pull requests, Actions: **read** (the collector reads run approvals, not `/deployments`) | ≤ 90 days; release manager rotates; recorded in `releases/` before the change |
 | `PLATFORM_REPO` | Netlify env var (optional) | all | `owner/repo` of the platform; default `nictuck/fernhill-platform`; a malformed value refuses to refresh | n/a |
 
 Adding a product repo = `scripts/new-product` on the platform **and** adding

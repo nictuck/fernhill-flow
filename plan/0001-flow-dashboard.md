@@ -23,10 +23,11 @@ New, by area:
 | Mock (step 0) | `docs/mock/index.html`, `docs/mock/mock.css`; reviews in `docs/reviews/` |
 | Engine (pure, no deps) | `src/engine/types.ts` (Snapshot schema, `SCHEMA_VERSION`, `THRESHOLD_KEYS`), `derive.ts` (state machine), `text.ts` (state line, `stateParts`), `time.ts` (UTC day arithmetic, `needsRefresh`, `isStale`), `needsYou.ts`, `systems.ts`, `archive.ts` (+ `board`), `timeline.ts`, `stages.ts`, `links.ts` (the only link allowlist), `index.ts` |
 | Collector | `src/collector/github.ts` (REST client: token, 5 s per-call timeout, 8 s deadline, 1 MiB cap, persisted ETags, 200-call cap, call log), `frontmatter.ts` (`yaml` on the `---` block only, typed validators), `classify.ts` (branch first, files fallback, `permission` by path), `validate.ts` (trust rule: config from `main` only, repo/site shapes, `version.txt` shape), `collect.ts` |
-| Functions | `netlify/lib/store.ts` (Blobs, prefix = deploy context, `latest`/`previous`/`lock`/`etags`/`last-error`), `netlify/lib/refresh-core.ts` (floor, lock, collect, store, log line), `netlify/functions/flow.ts`, `netlify/functions/refresh.ts` |
+| Functions | `netlify/lib/store.ts` (Blobs: site store for `production`/`branch-deploy`, deploy-scoped store for every other context; `latest`/`previous`/`lock`/`etags`/`last-error`), `netlify/lib/refresh-core.ts` (floor incl. after failures, lock, collect, store, log line, R15 budget warning), `netlify/lib/fixture.ts` (no-token collector, timestamps shifted to now), `netlify/functions/flow.ts`, `netlify/functions/refresh.ts` |
 | UI | `src/main.tsx`, `src/App.tsx`, `src/router.ts`, `src/api.ts`, `src/screens/{Board,Intent,Systems,Archive}.tsx`, `src/components/*`, `src/styles.css`, `src/fixtures/sample.json` |
 | Spike | `scripts/spike.ts` → `docs/baseline.md`, `tests/fixtures/000-live.json` |
-| Tests | `tests/helpers/{build,setup,memoryStore,fakeGithub,render}.ts(x)`, `tests/engine/*`, `tests/collector/*`, `tests/functions/*`, `tests/ui/*` (names in Proof) |
+| Tests | `tests/helpers/{build,setup,memoryStore,fakeGithub,render}.ts(x)`, `tests/engine/*` (+ `scenarios.ts` builders, `schema.test.ts`), `tests/collector/*`, `tests/functions/*`, `tests/ui/*` (+ `useFlow.test.tsx`) (names in Proof) |
+| Evidence | `docs/screenshots/*.png`, `docs/reviews/0001-pr-review.md` (verifier + three persona reviews with dispositions) |
 | Repo config | `Makefile`, `netlify.toml`, `.sdlc.yaml` (`stack`), `CLAUDE.md` (inventory, dev notes), `README.md` |
 
 Edited: `Makefile`, `netlify.toml`, `.sdlc.yaml`, `CLAUDE.md`, `README.md`,
