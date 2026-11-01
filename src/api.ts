@@ -57,10 +57,11 @@ export const api = {
     const res = await fetch("/api/flow", { headers: { accept: "application/json" } });
     return readJson<FlowResponse>(res, "GET /api/flow");
   },
-  async postRefresh(): Promise<RefreshResponse> {
+  async postRefresh(trigger: "page" | "manual" = "manual"): Promise<RefreshResponse> {
+    // X-Flow-Trigger tells the function's log line who asked (R17: page | manual).
     const res = await fetch("/api/refresh", {
       method: "POST",
-      headers: { accept: "application/json", "X-Flow-Refresh": "1" },
+      headers: { accept: "application/json", "X-Flow-Refresh": "1", "X-Flow-Trigger": trigger },
     });
     return readJson<RefreshResponse>(res, "POST /api/refresh");
   },
@@ -135,9 +136,9 @@ async function safeGet(): Promise<FlowResponse> {
   }
 }
 
-async function safePost(): Promise<RefreshResponse> {
+async function safePost(trigger: "page" | "manual"): Promise<RefreshResponse> {
   try {
-    return await api.postRefresh();
+    return await api.postRefresh(trigger);
   } catch (e) {
     return { outcome: "failed", snapshot: null, error: networkError(e) };
   }
@@ -219,7 +220,7 @@ export function useFlow(): FlowState {
           if (!want) return;
         }
 
-        const r = await safePost();
+        const r = await safePost(trigger === "manual" ? "manual" : "page");
         const postError = r.outcome === "failed" ? (r.error ?? { kind: "unknown", message: "Refresh failed.", at: nowIso() }) : undefined;
         res = await safeGet();
         if (res.mode === "fixture") {

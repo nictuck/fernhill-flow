@@ -12,6 +12,15 @@
   directory = "netlify/functions"
   node_bundler = "esbuild"
 
+# `make dev`: Netlify CLI proxies Vite (5173) and the functions on 8888.
+# Explicit, because the package.json `dev` script is `netlify dev` itself.
+[dev]
+  command = "npx vite --port 5173 --strictPort"
+  targetPort = 5173
+  port = 8888
+  framework = "#custom"
+  autoLaunch = false
+
 [context.production]
   environment = { SDLC_ENV = "production" }
 
