@@ -8,17 +8,20 @@ import { ConfigError, parseVersion, validateConfig } from "../../src/collector/v
 import { NOW } from "../helpers/build.ts";
 import {
   FakeGithub,
+  OWNER,
   PLATFORM,
   PRODUCT,
   addPrs,
   addRepo,
   addSite,
   addTree,
+  b64,
   configJson,
   fakeSha,
   ghPr,
   intentMd,
   repoBase,
+  specMd,
 } from "../helpers/fakeGithub.ts";
 
 function run(fake: FakeGithub) {
@@ -119,6 +122,34 @@ describe("R18 fork PRs are shown, never trusted", () => {
     expect(fake.count((k) => k.includes("/check-runs") && !k.includes(mainSha))).toBe(0);
     expect(snap.platform.intents.map((i) => i.id)).toEqual(["0001"]);
     expect(snap.platform.intents[0]?.spec).toBeUndefined();
+  });
+});
+
+describe("R18 spec PR content is display-only", () => {
+  test("only `flagged` is read from the PR head; status stays proposed; a missing file keeps 0 with a warning", async () => {
+    const fake = new FakeGithub();
+    platform(fake, { "intent/0002-second/intent.md": intentMd({ id: "0002" }) });
+    const pr1 = ghPr(PLATFORM, { number: 21, branch: "design/0001-flow-dashboard", createdAt: "2026-11-05T10:00:00Z" });
+    const pr2 = ghPr(PLATFORM, { number: 22, branch: "design/0002-second", createdAt: "2026-11-06T10:00:00Z" });
+    addPrs(fake, PLATFORM, [pr1, pr2]);
+    const head = (p: Record<string, unknown>) => (p["head"] as { sha: string }).sha;
+    for (const p of [pr1, pr2]) {
+      fake.json(`${repoBase(PLATFORM)}/commits/${head(p)}/check-runs?per_page=50`, { total_count: 0, check_runs: [] });
+      fake.json(`${repoBase(PLATFORM)}/commits/${head(p)}/status`, { state: "pending", statuses: [] });
+    }
+    // The head claims acceptance; only the concern count may come through. PR 22's head has no spec.md.
+    fake.json(`${repoBase(PLATFORM)}/contents/intent/0001-flow-dashboard/spec.md?ref=${head(pr1)}`, {
+      content: b64(specMd({ intent: "0001", status: "accepted", flagged: 3 })),
+      encoding: "base64",
+    });
+
+    const snap = await run(fake);
+    const [i1, i2] = snap.platform.intents;
+    expect(i1?.spec).toEqual({ status: "proposed", flagged: 3, url: `https://github.com/${OWNER}/${PLATFORM}/pull/21`, prNumber: 21, prOpenedAt: "2026-11-05T10:00:00Z" });
+    expect(i1?.spec?.acceptedAt).toBeUndefined();
+    expect(i2?.spec).toMatchObject({ status: "proposed", flagged: 0, prNumber: 22 });
+    expect(snap.warnings.some((w) => w.includes("#22") && w.includes("spec.md@head"))).toBe(true);
+    expect(fake.count((k) => k.includes("/contents/"))).toBe(2);
   });
 });
 

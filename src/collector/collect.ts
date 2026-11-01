@@ -96,6 +96,7 @@ interface GhCheckRun {
   conclusion?: string | null;
   html_url?: string | null;
   details_url?: string | null;
+  started_at?: string | null;
 }
 interface GhCheckRuns {
   check_runs?: GhCheckRun[];
@@ -134,6 +135,8 @@ interface GhRuns {
 interface GhApproval {
   state?: string;
   user?: GhUser | null;
+  /** the approval time lives on the environment entry */
+  environments?: { name?: string; created_at?: string; updated_at?: string }[];
   created_at?: string;
   updated_at?: string;
 }
@@ -250,7 +253,14 @@ async function listPrs(ctx: Ctx, repo: string): Promise<GhPr[]> {
 const BAD_CONCLUSIONS = new Set(["failure", "timed_out", "cancelled", "action_required", "startup_failure", "stale"]);
 const RUNNING_STATUSES = new Set(["queued", "in_progress", "waiting", "pending", "requested"]);
 
-async function checkRuns(ctx: Ctx, repo: string, sha: string): Promise<{ ci: CiStatus; ciUrl?: string }> {
+interface CiInfo {
+  ci: CiStatus;
+  ciUrl?: string;
+  /** earliest check start for the sha ≈ when the head was pushed */
+  startedAt?: string;
+}
+
+async function checkRuns(ctx: Ctx, repo: string, sha: string): Promise<CiInfo> {
   const data = asObject<GhCheckRuns>(
     await ctx.client.get(`/repos/${ctx.owner}/${repo}/commits/${sha}/check-runs?per_page=50`),
     "check runs",
@@ -271,11 +281,20 @@ async function checkRuns(ctx: Ctx, repo: string, sha: string): Promise<{ ci: CiS
   const bad = runs.filter((r) => r.status === "completed" && BAD_CONCLUSIONS.has(r.conclusion ?? ""));
   const pick = bad[0] ?? runs[0];
   const url = pick?.html_url ?? pick?.details_url ?? undefined;
-  const withUrl = (ci: CiStatus): { ci: CiStatus; ciUrl?: string } => (url ? { ci, ciUrl: url } : { ci });
-  if (bad.length > 0) return withUrl("red");
-  if (runs.some((r) => RUNNING_STATUSES.has(r.status ?? ""))) return withUrl("running");
-  if (runs.some((r) => r.conclusion === "success")) return withUrl("green");
-  return { ci: "none" };
+  const startedAt = runs
+    .map((r) => r.started_at)
+    .filter((s): s is string => typeof s === "string" && !Number.isNaN(Date.parse(s)))
+    .sort()[0];
+  const info = (ci: CiStatus): CiInfo => {
+    const out: CiInfo = { ci };
+    if (url) out.ciUrl = url;
+    if (startedAt) out.startedAt = startedAt;
+    return out;
+  };
+  if (bad.length > 0) return info("red");
+  if (runs.some((r) => RUNNING_STATUSES.has(r.status ?? ""))) return info("running");
+  if (runs.some((r) => r.conclusion === "success")) return info("green");
+  return info("none");
 }
 
 /** Raw PR → Pr, with classification, CI and mergedBy. Null when it is out of scope. */
@@ -283,7 +302,6 @@ async function buildPr(ctx: Ctx, repo: string, raw: GhPr): Promise<Pr | null> {
   const merged = typeof raw.merged_at === "string";
   const state: Pr["state"] = raw.state === "open" ? "open" : merged ? "merged" : "closed";
   if (state === "closed") return null;
-  if (state === "merged" && Date.parse(raw.merged_at ?? "") < ctx.sinceMs) return null;
 
   const sameRepo = isSameRepo(raw.head.repo?.full_name, ctx.owner, repo);
   let cls = classifyBranch(raw.head.ref);
@@ -327,6 +345,9 @@ async function buildPr(ctx: Ctx, repo: string, raw: GhPr): Promise<Pr | null> {
     const ci = await soft(ctx, `${repo}#${raw.number} checks`, () => checkRuns(ctx, repo, raw.head.sha), { ci: "none" as CiStatus });
     pr.ci = ci.ci;
     if (ci.ciUrl) pr.ciUrl = ci.ciUrl;
+    // updatedAt means "last head push": GitHub's updated_at also moves on comments and
+    // labels (which would un-stick a red PR), so prefer the head sha's first check start.
+    if (ci.startedAt) pr.updatedAt = ci.startedAt;
   }
 
   const wantsMergedBy = pr.class === "intent" || pr.class === "spec" || pr.class === "build";
@@ -344,8 +365,30 @@ async function buildPr(ctx: Ctx, repo: string, raw: GhPr): Promise<Pr | null> {
   return pr;
 }
 
+/**
+ * Which PRs are in scope: every open PR; merged PRs inside the 90-day window;
+ * and, regardless of age, the newest merged same-repo `build/NNNN-*` PR per
+ * intent — the Deploy/Maintain unit of evaluation must never age out, or a
+ * Live intent would fall back to Build 91 days after its release.
+ */
+function keepPr(ctx: Ctx, repo: string, pr: GhPr, all: GhPr[]): boolean {
+  if (pr.state === "open") return true;
+  if (typeof pr.merged_at !== "string") return false;
+  if (Date.parse(pr.merged_at) >= ctx.sinceMs) return true;
+  const cls = classifyBranch(pr.head.ref);
+  if (!cls || cls.class !== "build" || !cls.intent || !isSameRepo(pr.head.repo?.full_name, ctx.owner, repo)) return false;
+  const newest = all
+    .filter((o) => {
+      const c = classifyBranch(o.head.ref);
+      return typeof o.merged_at === "string" && c?.class === "build" && c.intent === cls.intent && isSameRepo(o.head.repo?.full_name, ctx.owner, repo);
+    })
+    .sort((a, b) => b.number - a.number)[0];
+  return newest?.number === pr.number;
+}
+
 async function buildPrs(ctx: Ctx, repo: string, raw: GhPr[]): Promise<Pr[]> {
-  const built = await Promise.all(raw.map((r) => buildPr(ctx, repo, r)));
+  const inScope = raw.filter((r) => keepPr(ctx, repo, r, raw));
+  const built = await Promise.all(inScope.map((r) => buildPr(ctx, repo, r)));
   return built.filter((p): p is Pr => p !== null).sort((a, b) => b.number - a.number);
 }
 
@@ -493,6 +536,31 @@ async function readPlatformArtifacts(ctx: Ctx, tree: GhTreeEntry[]): Promise<Pla
   return { intents, exceptions, incidents, personas };
 }
 
+/** `flagged` from the spec at an open design PR's head — display only (R18); anything else stays from main. */
+async function flaggedAtHead(ctx: Ctx, dir: string, pr: Pr): Promise<number> {
+  const path = `intent/${dir}/spec.md`;
+  const label = `${ctx.platform}#${pr.number} ${path}@head`;
+  const text = await soft(
+    ctx,
+    label,
+    async () =>
+      decodeBlob(asObject<GhBlob>(await ctx.client.get(`/repos/${ctx.owner}/${ctx.platform}/contents/${path}?ref=${pr.headSha}`), "contents")),
+    null,
+  );
+  if (text === null) return 0;
+  try {
+    const v = specFrontmatter(parseFrontmatter(text));
+    if (v.value === null) {
+      warn(ctx, `${label} skipped: ${v.reason}`);
+      return 0;
+    }
+    return v.value.flagged;
+  } catch (err) {
+    warn(ctx, `${label} skipped: ${(err as Error).message}`);
+    return 0;
+  }
+}
+
 /** Gate 1/2 evidence and Plan-stage intents from the platform's PRs. */
 async function enrichIntents(ctx: Ctx, intents: Map<string, Intent>, prs: Pr[]): Promise<Intent[]> {
   const byMergedAsc = (a: Pr, b: Pr) => Date.parse(a.mergedAt ?? "") - Date.parse(b.mergedAt ?? "");
@@ -506,6 +574,7 @@ async function enrichIntents(ctx: Ctx, intents: Map<string, Intent>, prs: Pr[]):
     if (pr.class === "spec" && intent.spec && intent.spec.acceptedAt === undefined) intent.spec.acceptedAt = pr.mergedAt;
   }
 
+  const flaggedTasks: Promise<void>[] = [];
   for (const pr of open) {
     const id = pr.intent ?? "";
     const intent = intents.get(id);
@@ -513,6 +582,12 @@ async function enrichIntents(ctx: Ctx, intents: Map<string, Intent>, prs: Pr[]):
       if (!intent.spec || intent.spec.status !== "accepted") {
         const spec: Spec = { status: "proposed", flagged: 0, url: pr.url, prNumber: pr.number, prOpenedAt: pr.createdAt };
         intent.spec = spec;
+        // One call per open spec PR: the open-concern count, so "Accept spec (N concerns open)" is live.
+        flaggedTasks.push(
+          flaggedAtHead(ctx, intent.dir, pr).then((n) => {
+            spec.flagged = n;
+          }),
+        );
       }
     }
     if (pr.class === "intent" && !intent) {
@@ -532,6 +607,8 @@ async function enrichIntents(ctx: Ctx, intents: Map<string, Intent>, prs: Pr[]):
       });
     }
   }
+
+  await Promise.all(flaggedTasks);
 
   const finished = [...intents.values()].filter((i) => i.status === "done" || i.status === "parked" || i.status === "rejected");
   await Promise.all(
@@ -668,7 +745,8 @@ async function readReleaseRuns(ctx: Ctx, repo: string): Promise<ReleaseRun[]> {
       if (!first) return;
       const login = first.user?.login;
       if (typeof login === "string" && login) run.approvedBy = login;
-      const at = first.created_at ?? first.updated_at;
+      // The approvals API records the time on the environment entry, the login at the top level.
+      const at = first.environments?.[0]?.created_at ?? first.created_at ?? first.updated_at;
       if (typeof at === "string" && at) run.approvedAt = at;
     }),
   );
@@ -797,7 +875,7 @@ export async function collect(deps: CollectDeps): Promise<Snapshot> {
   const startedMs = Date.now();
   const platformRepo = deps.platformRepo ?? DEFAULT_PLATFORM_REPO;
   const parsed = parsePlatformRepo(platformRepo);
-  if (!parsed) throw new ConfigError(`PLATFORM_REPO "${platformRepo}" must be owner/repo`);
+  if (!parsed) throw new ConfigError("PLATFORM_REPO is malformed; expected owner/repo");
 
   const nowIso = deps.now();
   const nowMs = Date.parse(nowIso);

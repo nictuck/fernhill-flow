@@ -231,7 +231,7 @@ export function addPrs(fake: FakeGithub, repo: string, prs: Record<string, unkno
 
 export type CheckSpec = "success" | "failure" | "in_progress" | "queued" | "cancelled" | "timed_out" | "neutral" | "skipped";
 
-export function checkRuns(specs: CheckSpec[], repo = PRODUCT): Record<string, unknown> {
+export function checkRuns(specs: CheckSpec[], repo = PRODUCT, startedAt?: string): Record<string, unknown> {
   const check_runs = specs.map((s, i) => {
     const running = s === "in_progress" || s === "queued";
     return {
@@ -239,6 +239,8 @@ export function checkRuns(specs: CheckSpec[], repo = PRODUCT): Record<string, un
       name: `check-${i}`,
       status: running ? s : "completed",
       conclusion: running ? null : s,
+      // later checks start a little later; the collector takes the earliest
+      started_at: startedAt ? (i === 0 ? startedAt : new Date(Date.parse(startedAt) + i * 60_000).toISOString()) : null,
       html_url: `https://github.com/${OWNER}/${repo}/runs/${1000 + i}`,
       details_url: `https://github.com/${OWNER}/${repo}/runs/${1000 + i}`,
     };
@@ -246,8 +248,8 @@ export function checkRuns(specs: CheckSpec[], repo = PRODUCT): Record<string, un
   return { total_count: check_runs.length, check_runs };
 }
 
-export function addCheckRuns(fake: FakeGithub, repo: string, sha: string, specs: CheckSpec[], owner = OWNER): void {
-  fake.json(`${repoBase(repo, owner)}/commits/${sha}/check-runs?per_page=50`, checkRuns(specs, repo));
+export function addCheckRuns(fake: FakeGithub, repo: string, sha: string, specs: CheckSpec[], owner = OWNER, startedAt?: string): void {
+  fake.json(`${repoBase(repo, owner)}/commits/${sha}/check-runs?per_page=50`, checkRuns(specs, repo, startedAt));
 }
 
 export function commitAt(date: string, login: string | null = "nictuck", name = "Nicholas Tucker"): Record<string, unknown> {

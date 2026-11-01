@@ -57,9 +57,9 @@ export interface RefreshDeps {
 export const BUDGET_MS = 8_000;
 export const LOCK_TTL_MS = 90_000;
 /** Cold-cache GitHub calls per refresh measured by `make spike` (docs/baseline.md,
- *  2026-11-01: two repos). A refresh above twice this logs a warning (R15);
+ *  2026-11-01 re-run: two repos, one open spec PR, one open build PR). A refresh above twice this logs a warning (R15);
  *  update it when the spike is re-run after adding repos. */
-export const BASELINE_CALLS = 31;
+export const BASELINE_CALLS = 33;
 export const DEFAULT_FLOOR_SECONDS = 60;
 export const DEFAULT_INTERVAL_MINUTES = 10;
 
@@ -126,18 +126,28 @@ export async function runRefresh(deps: RefreshDeps): Promise<RefreshResult> {
     log({ outcome, calls: 0, cached: 0, cachedRatio: 0, durationMs: Date.now() - startedMs, remaining: null, ...extra });
 
   const latest = await readSnapshot(deps.store);
+  const lastError = await deps.store.getJSON<FlowError>(KEYS.lastError);
   const snapshotAt = latest?.collectedAt ?? null;
 
   const platformRepo = deps.platformRepo ?? process.env.PLATFORM_REPO ?? DEFAULT_PLATFORM_REPO;
   if (!parsePlatformRepo(platformRepo)) {
-    const error: FlowError = { kind: "config", message: `PLATFORM_REPO "${platformRepo}" must be owner/repo`, at };
+    // Never echo the value: this message reaches the browser and the log.
+    const error: FlowError = { kind: "config", message: "PLATFORM_REPO is malformed; expected owner/repo", at };
     idle("failed", { snapshotAt, error });
     return { outcome: "failed", snapshot: latest, error };
   }
 
-  if (latest && nowMs - Date.parse(latest.collectedAt) < floorSeconds(latest) * 1000) {
-    idle("floor", { snapshotAt });
-    return { outcome: "floor", snapshot: latest };
+  // The floor counts from the last attempt, successful or not: a bad token or a
+  // slow GitHub must not turn every POST into a full collection (R17).
+  const lastAttemptMs = Math.max(
+    latest ? Date.parse(latest.collectedAt) : Number.NEGATIVE_INFINITY,
+    typeof lastError?.at === "string" ? Date.parse(lastError.at) : Number.NEGATIVE_INFINITY,
+  );
+  if (Number.isFinite(lastAttemptMs) && nowMs - lastAttemptMs < floorSeconds(latest) * 1000) {
+    idle("floor", { snapshotAt, ...(lastError ? { error: lastError } : {}) });
+    const result: RefreshResult = { outcome: "floor", snapshot: latest };
+    if (lastError) result.error = lastError;
+    return result;
   }
 
   // Single flight: create the lock; if it exists and has expired, take it
@@ -191,7 +201,7 @@ export async function runRefresh(deps: RefreshDeps): Promise<RefreshResult> {
   } catch (err) {
     const error = toFlowError(err, at);
     await deps.store.setJSON(KEYS.lastError, error);
-    await deps.store.setJSON(KEYS.etags, client.etagCache());
+    if (client.cacheChanged()) await deps.store.setJSON(KEYS.etags, client.etagCache());
     const s = client.stats();
     log({
       outcome: "failed",

@@ -1,9 +1,15 @@
-// Snapshot storage (spec: Shape). One Netlify Blobs store, keys prefixed by
-// the deploy context so staging never writes production's board. Behind an
-// interface so tests run on an in-memory implementation with the same
-// conditional-write semantics (plan: riskiest step).
+// Snapshot storage (spec: Shape). Keys are prefixed by the deploy context so
+// staging never writes production's board. Behind an interface so tests run
+// on an in-memory implementation with the same conditional-write semantics
+// (plan: riskiest step).
+//
+// Scope (security review): only `production` and `branch-deploy` use the
+// site-wide store. Every other context — deploy previews (which run fork-PR
+// code with the site's Blobs credentials), `dev`, anything unknown — gets the
+// deploy-scoped store, which is private to that deploy and wiped with it, so
+// code in a preview can never write `production/latest` through this module.
 
-import { getStore } from "@netlify/blobs";
+import { getDeployStore, getStore } from "@netlify/blobs";
 import type { Store as NetlifyBlobStore } from "@netlify/blobs";
 
 export interface SetOptions {
@@ -47,16 +53,38 @@ export function resolvePrefix(
   return candidate;
 }
 
+export type Scope = "site" | "deploy";
+
+/** The only contexts whose snapshot outlives the deploy and is shared across deploys. */
+export const SITE_CONTEXTS: ReadonlySet<string> = new Set(["production", "branch-deploy"]);
+
+export function scopeFor(prefix: string): Scope {
+  return SITE_CONTEXTS.has(prefix) ? "site" : "deploy";
+}
+
+/** Seam for tests: which Netlify store backs each scope. */
+export interface StoreFactories {
+  site: () => NetlifyBlobStore;
+  deploy: () => NetlifyBlobStore;
+}
+
+export const netlifyFactories: StoreFactories = {
+  site: () => getStore({ name: STORE_NAME, consistency: "strong" }),
+  deploy: () => getDeployStore({ name: STORE_NAME, consistency: "strong" }),
+};
+
 export class BlobsStore implements Store {
   private readonly prefix: string;
+  private readonly factory: () => NetlifyBlobStore;
   private blobs: NetlifyBlobStore | undefined;
 
-  constructor(prefix: string) {
+  constructor(prefix: string, factory: () => NetlifyBlobStore) {
     this.prefix = prefix;
+    this.factory = factory;
   }
 
   private store(): NetlifyBlobStore {
-    this.blobs ??= getStore({ name: STORE_NAME, consistency: "strong" });
+    this.blobs ??= this.factory();
     return this.blobs;
   }
 
@@ -93,6 +121,7 @@ export class BlobsStore implements Store {
   }
 }
 
-export function makeStore(prefix: string): Store {
-  return new BlobsStore(prefix);
+/** The store for a deploy context: site-wide for production and branch-deploy, deploy-scoped otherwise. */
+export function makeStore(prefix: string, factories: StoreFactories = netlifyFactories): Store {
+  return new BlobsStore(prefix, factories[scopeFor(prefix)]);
 }

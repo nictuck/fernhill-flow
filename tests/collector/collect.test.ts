@@ -16,6 +16,7 @@ import {
   addRepo,
   addSite,
   addTree,
+  b64,
   commitAt,
   compareBody,
   configJson,
@@ -80,6 +81,11 @@ function scenario(): FakeGithub {
   fake.json(`${P}/commits/${head(5)}/check-runs?per_page=50`, { total_count: 0, check_runs: [] });
   fake.json(`${P}/commits/${head(5)}/status`, { state: "pending", statuses: [] });
   fake.json(`${P}/pulls/5/files?per_page=100`, [{ filename: "docs/flow.md" }]);
+  // The open design PR's head carries the live concern count; only `flagged` may come from it.
+  fake.json(`${P}/contents/intent/0002-second/spec.md?ref=${head(3)}`, {
+    content: b64(specMd({ intent: "0002", status: "accepted", flagged: 2 })),
+    encoding: "base64",
+  });
   fake.json(`${P}/commits?path=${encodeURIComponent("intent/0003-done-thing/intent.md")}&per_page=1`, [commitAt("2026-11-01T09:00:00Z", "nictuck")]);
 
   const platformMain = fakeSha(`${PLATFORM}:main`);
@@ -101,7 +107,9 @@ function scenario(): FakeGithub {
       { id: 400, sha: PROD, status: "completed", conclusion: "success", createdAt: "2026-11-05T13:00:00Z" },
     ],
   });
-  fake.json(`${F}/actions/runs/400/approvals`, [{ state: "approved", user: { login: "nictuck" }, comment: "", environments: [{ name: "production" }] }]);
+  fake.json(`${F}/actions/runs/400/approvals`, [
+    { state: "approved", user: { login: "nictuck" }, comment: "", environments: [{ name: "production", created_at: "2026-11-05T14:00:00Z", updated_at: "2026-11-05T14:00:00Z" }] },
+  ]);
   fake.json(`${F}/commits?sha=${encodeURIComponent("build/0002-second")}&per_page=1`, [commitAt("2026-11-06T10:00:00Z")]);
   addTree(fake, PRODUCT, {
     "plan/0001-flow-dashboard.md": planMd({ intent: "0001" }),
@@ -113,13 +121,21 @@ function scenario(): FakeGithub {
     commitAt("2026-11-02T08:00:00Z"),
   ]);
   const MC10 = fakeSha(`${PRODUCT}:merge:10`);
+  const MC9 = fakeSha(`${PRODUCT}:merge:9`);
   addPrs(fake, PRODUCT, [
+    // 0003 shipped long ago: #9 is its newest build PR (92 days before NOW, outside the
+    // 90-day window) and must survive; #8 is an older one for the same intent and may go.
+    ghPr(PRODUCT, { number: 8, branch: "build/0003-done-thing", state: "merged", mergedAt: "2026-07-20T12:00:00Z" }),
+    ghPr(PRODUCT, { number: 9, branch: "build/0003-done-thing", state: "merged", mergedAt: "2026-08-10T12:00:00Z", mergeCommit: MC9 }),
     ghPr(PRODUCT, { number: 10, branch: "build/0001-flow-dashboard", state: "merged", mergedAt: "2026-11-05T12:00:00Z", mergeCommit: MC10, mergedBy: "codeowner" }),
     ghPr(PRODUCT, { number: 11, branch: "build/0001-flow-dashboard", createdAt: "2026-11-09T09:00:00Z", updatedAt: "2026-11-09T18:00:00Z" }),
     ghPr(PRODUCT, { number: 12, branch: "fix/thing", fork: true }),
+    ghPr(PRODUCT, { number: 13, branch: "fix/ancient", state: "merged", mergedAt: "2026-08-01T12:00:00Z" }),
   ]);
-  addCheckRuns(fake, PRODUCT, fakeSha(`${PRODUCT}:head:11`), ["success", "failure"]);
+  // Check-runs for #11 started at 09:30; GitHub's updated_at (18:00) moved on a comment.
+  addCheckRuns(fake, PRODUCT, fakeSha(`${PRODUCT}:head:11`), ["success", "failure"], OWNER, "2026-11-09T09:30:00Z");
   fake.json(`${F}/compare/production...${MC10}`, compareBody("behind"));
+  fake.json(`${F}/compare/production...${MC9}`, compareBody("behind"));
   addSite(fake, PRODUCT, { staging: M, production: PROD });
 
   // fernhill-x: nothing registered → 404 everywhere
@@ -155,7 +171,8 @@ describe("collect: canned platform + product", () => {
       spec: { status: "accepted", flagged: 0, url: `${GH}/${PLATFORM}/blob/main/intent/0001-flow-dashboard/spec.md`, acceptedAt: "2026-11-01T12:00:00Z" },
     });
     expect(i1?.prNumber).toBeUndefined();
-    expect(i2?.spec).toEqual({ status: "proposed", flagged: 0, url: `${GH}/${PLATFORM}/pull/3`, prNumber: 3, prOpenedAt: "2026-11-05T10:00:00Z" });
+    // flagged comes from the PR head; the head's `status: accepted` is ignored (R18).
+    expect(i2?.spec).toEqual({ status: "proposed", flagged: 2, url: `${GH}/${PLATFORM}/pull/3`, prNumber: 3, prOpenedAt: "2026-11-05T10:00:00Z" });
     expect(i2?.acceptedAt).toBeUndefined();
     expect(i3).toMatchObject({ status: "done", acceptedAt: "2026-10-20T12:00:00Z", statusSetAt: "2026-11-01T09:00:00Z", statusSetBy: "nictuck" });
     expect(i5).toEqual({
@@ -248,7 +265,8 @@ describe("collect: canned platform + product", () => {
         onMain: true,
       },
     ]);
-    expect(product?.prs.map((p) => p.number)).toEqual([12, 11, 10]);
+    // #8 (superseded old build) and #13 (old fix) fall out of the window; #9 survives as 0003's newest build PR.
+    expect(product?.prs.map((p) => p.number)).toEqual([12, 11, 10, 9]);
     expect(product?.prs[0]).toMatchObject({ class: "fix", sameRepo: false, ci: "none" });
     expect(product?.prs[1]).toMatchObject({
       class: "build",
@@ -256,13 +274,24 @@ describe("collect: canned platform + product", () => {
       state: "open",
       ci: "red",
       ciUrl: `${GH}/${PRODUCT}/runs/1001`,
-      updatedAt: "2026-11-09T18:00:00Z",
+      // first check start, not GitHub's comment-bumped updated_at
+      updatedAt: "2026-11-09T09:30:00Z",
     });
     expect(product?.prs[2]).toMatchObject({
       class: "build",
       state: "merged",
       mergedBy: "codeowner",
       mergeCommit: fakeSha(`${PRODUCT}:merge:10`),
+      inProduction: true,
+      servedLive: true,
+    });
+    expect(product?.prs[3]).toMatchObject({
+      number: 9,
+      class: "build",
+      intent: "0003",
+      state: "merged",
+      mergedAt: "2026-08-10T12:00:00Z",
+      mergeCommit: fakeSha(`${PRODUCT}:merge:9`),
       inProduction: true,
       servedLive: true,
     });
@@ -277,6 +306,7 @@ describe("collect: canned platform + product", () => {
         pendingApproval: false,
         createdAt: "2026-11-05T13:00:00Z",
         approvedBy: "nictuck",
+        approvedAt: "2026-11-05T14:00:00Z",
       },
     ]);
     expect(product?.buildBranches).toEqual([{ name: "build/0002-second", intent: "0002", lastCommitAt: "2026-11-06T10:00:00Z" }]);

@@ -171,6 +171,61 @@ describe("R17 failure keeps the previous snapshot", () => {
   });
 });
 
+describe("R17 floor after a failure", () => {
+  test("a second refresh within floor_seconds of a FAILED one makes no GitHub call and no store write", async () => {
+    const h = harness();
+    const first = await runRefresh(
+      h.deps({
+        collectFn: async (ctx) => {
+          await ctx.client.get(PLATFORM_PATH);
+          throw new CollectError("upstream", "GitHub 502", { status: 502 });
+        },
+      }),
+    );
+    expect(first.outcome).toBe("failed");
+    expect(h.fake.calls.length).toBe(1);
+    // No ETag was learned (the fake sends none), so the failure path writes only last-error.
+    expect(h.store.ops.filter((o) => o.startsWith("set etags"))).toHaveLength(0);
+    const callsBefore = h.fake.calls.length;
+    const opsBefore = h.store.ops.length;
+
+    const second = await runRefresh(h.deps({ now: () => secondsLater(NOW, 30) }));
+    expect(second.outcome).toBe("floor");
+    expect(second.snapshot).toBeNull();
+    expect(second.error).toMatchObject({ kind: "upstream", status: 502, at: NOW });
+    expect(h.fake.calls.length).toBe(callsBefore);
+    expect(h.store.ops.slice(opsBefore).every((o) => o.startsWith("get"))).toBe(true);
+    expect(h.collections()).toBe(0); // the harness's counting collector was never reached
+    expect(JSON.parse(h.lines[1] ?? "{}")).toMatchObject({ outcome: "kept-previous", reason: "floor", calls: 0, error: { kind: "upstream" } });
+
+    const third = await runRefresh(h.deps({ now: () => secondsLater(NOW, 61) }));
+    expect(third.outcome).toBe("refreshed");
+    expect(h.collections()).toBe(1);
+    expect(await h.store.getJSON(KEYS.lastError)).toBeNull();
+  });
+
+  test("the floor measures from the newer of the snapshot and the failure", async () => {
+    const h = harness();
+    await runRefresh(h.deps()); // snapshot at NOW
+    const failed = await runRefresh(
+      h.deps({
+        now: () => secondsLater(NOW, 100),
+        collectFn: async () => {
+          throw new CollectError("upstream", "GitHub 502");
+        },
+      }),
+    );
+    expect(failed.outcome).toBe("failed");
+    // 130 s after the snapshot but only 30 s after the failure → floor, snapshot still served.
+    const r = await runRefresh(h.deps({ now: () => secondsLater(NOW, 130) }));
+    expect(r.outcome).toBe("floor");
+    expect(r.snapshot?.collectedAt).toBe(NOW);
+    expect(r.error).toMatchObject({ kind: "upstream" });
+    expect(h.collections()).toBe(1); // the failing collector was injected, not the counting one
+    expect(h.fake.calls.length).toBe(1);
+  });
+});
+
 describe("R15 budget warning", () => {
   test("a refresh above twice the measured baseline warns in the log line and the snapshot; a normal one does not", async () => {
     const h = harness();

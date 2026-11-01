@@ -50,3 +50,7 @@ Both runs finished well inside the 8000 ms budget (slowest 2597 ms), so `refresh
 
 `tests/fixtures/000-live.json` is the first snapshot (9831 bytes).
 No string contained `@`; nothing was stripped.
+
+## Re-run 2026-11-01T21:47:07.206Z
+
+Repos: `fernhill-platform`, `fernhill-flow`. GitHub calls 33 cold / 33 warm (30 × 304, 91%); wall 3290 ms / 3203 ms (41% of budget); rate limit consumed 30 cold; warnings: site https://fernhillplatform.netlify.app: HTTP 404.

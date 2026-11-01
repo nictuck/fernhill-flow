@@ -122,6 +122,25 @@ describe("R19 bounds", () => {
     expect(fake.count((k) => k === "/fast")).toBe(0);
   });
 
+  test("the ETag cache keeps bodies up to 64 KiB only, and reports whether it changed", async () => {
+    const fake = new FakeGithub().route("/big", { bytes: 70 * 1024, etag: '"big"' }).json("/small", { ok: true }, { etag: '"s"' });
+    const cache = {};
+    const c1 = new GithubClient({ token: "t", fetch: fake.fetch, etagCache: cache });
+    await c1.get("/big", { raw: true });
+    expect(c1.cacheChanged()).toBe(false);
+    expect(Object.keys(cache)).toEqual([]);
+    await c1.get("/small");
+    expect(c1.cacheChanged()).toBe(true);
+    expect(Object.keys(cache)).toEqual(["/small"]);
+
+    const c2 = new GithubClient({ token: "t", fetch: fake.fetch, etagCache: cache });
+    await c2.get("/small");
+    await c2.get("/big", { raw: true });
+    expect(c2.stats().cached).toBe(1);
+    expect(c2.cacheChanged()).toBe(false);
+    expect(fake.calls.filter((c) => c.key === "/big").every((c) => c.ifNoneMatch === null)).toBe(true);
+  });
+
   test("conditional requests: 304 serves the cached body and counts as cached", async () => {
     const fake = new FakeGithub().json(PATH, { name: "fernhill-platform" }, { etag: '"abc"' });
     const cache = {};

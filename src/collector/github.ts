@@ -58,6 +58,8 @@ export interface GithubClientOptions {
   callCap?: number;
   timeoutMs?: number;
   maxBytes?: number;
+  /** bodies larger than this are read but not kept in the ETag cache (default 64 KiB) */
+  cacheMaxBytes?: number;
   /** absolute ms (same clock as `now`): calls started after it, or still running at it, fail */
   deadline?: number;
   log?: (entry: CallLogEntry) => void;
@@ -73,6 +75,7 @@ export interface GithubStats {
 
 export const DEFAULT_TIMEOUT_MS = 5_000;
 export const DEFAULT_MAX_BYTES = 1024 * 1024;
+export const DEFAULT_CACHE_MAX_BYTES = 64 * 1024;
 export const DEFAULT_CALL_CAP = 200;
 
 function byteLength(text: string): number {
@@ -190,7 +193,9 @@ export class GithubClient {
   private readonly callCap: number;
   private readonly timeoutMs: number;
   private readonly maxBytes: number;
+  private readonly cacheMaxBytes: number;
   private readonly deadline: number | undefined;
+  private dirty = false;
   private readonly onLog: ((entry: CallLogEntry) => void) | undefined;
   private readonly baseUrl: string;
   private calls = 0;
@@ -207,6 +212,7 @@ export class GithubClient {
     this.callCap = opts.callCap ?? DEFAULT_CALL_CAP;
     this.timeoutMs = opts.timeoutMs ?? DEFAULT_TIMEOUT_MS;
     this.maxBytes = opts.maxBytes ?? DEFAULT_MAX_BYTES;
+    this.cacheMaxBytes = opts.cacheMaxBytes ?? DEFAULT_CACHE_MAX_BYTES;
     this.deadline = opts.deadline;
     this.onLog = opts.log;
     this.baseUrl = opts.baseUrl ?? "https://api.github.com";
@@ -257,9 +263,14 @@ export class GithubClient {
     } else if (res.ok) {
       body = text;
       const etag = res.headers.get("etag");
-      if (etag) {
+      if (etag && byteLength(body) <= this.cacheMaxBytes) {
         this.cache[path] = { etag, body };
         this.touched.add(path);
+        this.dirty = true;
+      } else if (this.cache[path]) {
+        // Too large to keep (or no ETag any more): drop the stale entry rather than serve it on a 304.
+        delete this.cache[path];
+        this.dirty = true;
       }
     } else {
       throw classifyStatus(res, path);
@@ -292,7 +303,15 @@ export class GithubClient {
   /** Remove entries not touched by this client (keeps the stored cache bounded). */
   pruneCache(): void {
     for (const key of Object.keys(this.cache)) {
-      if (!this.touched.has(key)) delete this.cache[key];
+      if (!this.touched.has(key)) {
+        delete this.cache[key];
+        this.dirty = true;
+      }
     }
+  }
+
+  /** True when this client added, replaced or removed a cache entry (a 304 changes nothing). */
+  cacheChanged(): boolean {
+    return this.dirty;
   }
 }
