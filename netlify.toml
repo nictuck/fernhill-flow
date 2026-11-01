@@ -1,0 +1,15 @@
+# Production branch is `production` (moved by the release workflow after
+# approval); `main` is the staging branch deploy. version.txt lets the
+# pipeline tell when a commit is live.
+[build]
+  command = 'make build && mkdir -p dist && echo "$COMMIT_REF" > dist/version.txt'
+  publish = "dist"
+
+[context.production]
+  environment = { SDLC_ENV = "production" }
+
+[context.branch-deploy]
+  environment = { SDLC_ENV = "staging" }
+
+[context.deploy-preview]
+  environment = { SDLC_ENV = "preview" }

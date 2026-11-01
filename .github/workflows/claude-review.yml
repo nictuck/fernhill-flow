@@ -1,0 +1,52 @@
+# AI in the PR review loop. Off until the repo has an ANTHROPIC_API_KEY
+# secret and the repository variable CLAUDE_REVIEW_ENABLED=true.
+# Findings are ranked per REVIEW.md; they never approve or block on their own.
+#
+# The job always runs and passes with a notice when the review is off: a
+# job-level `if:` would leave a "skipped" check, which GitHub's merge box
+# reports as "Some checks were not successful" on every PR.
+name: claude-review
+
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+  id-token: write
+
+jobs:
+  ai-review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Is AI review on for this repo?
+        id: gate
+        env:
+          ENABLED: ${{ vars.CLAUDE_REVIEW_ENABLED }}
+          DRAFT: ${{ github.event.pull_request.draft }}
+        run: |
+          if [ "$DRAFT" = "true" ]; then
+            echo "::notice::draft PR; AI review waits for ready_for_review"
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          elif [ "$ENABLED" = "true" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::AI review is off for this repo. Turn it on with: gh secret set ANTHROPIC_API_KEY && gh variable set CLAUDE_REVIEW_ENABLED -b true"
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.gate.outputs.run == 'true'
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - if: steps.gate.outputs.run == 'true'
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            Review pull request #${{ github.event.pull_request.number }} following REVIEW.md in this repository exactly:
+            run each pass, rank findings Important or Nit (cap nits as REVIEW.md says), compare the diff against the
+            plan file under plan/ that this PR implements, and post one review comment in the REVIEW.md output format.
+            Do not approve, request changes, or merge. Findings only.
+          claude_args: "--max-turns 20"

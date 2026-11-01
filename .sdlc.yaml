@@ -1,0 +1,13 @@
+# Links this repo back to the company platform. Read by scripts and the
+# Flow dashboard. Keep keys stable.
+company: Fernhill Software
+platform_repo: nictuck/fernhill-platform
+platform_path: ../../fernhill-platform     # local clone, relative to this repo
+product: "{{SLUG}}"
+# Netlify site name: https://<site>.netlify.app is production, main--<site> is staging.
+# Keep this line free of trailing comments; the release workflow parses it.
+netlify_site: "{{SITE}}"
+intents: ["{{INTENT}}"]
+created: "{{DATE}}"
+stack: ""                                   # set by the first plan, e.g. "vite+react"
+publish_dir: dist

@@ -1,0 +1,140 @@
+# Stage 5: the release pipeline (shared by fernhill-platform and every
+# product repo; synced by scripts/sync-template).
+#
+#   main  ──Netlify branch deploy──▶  https://main--<site>.netlify.app   (staging, automatic)
+#   production branch ──Netlify production──▶ https://<site>.netlify.app
+#
+# Only this workflow moves `production`, and only after the release manager
+# approves the `production` environment (gate 5). The approval, approver and
+# commit are recorded as a GitHub deployment. Every build writes
+# version.txt = commit sha, which is how the pipeline knows a deploy is live.
+name: release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: Commit on main to release (default is the latest)
+        required: false
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+env:
+  WAIT_ATTEMPTS: 40   # × 15 s = 10 min per Netlify wait
+
+jobs:
+  resolve:
+    runs-on: ubuntu-latest
+    outputs:
+      site: ${{ steps.cfg.outputs.site }}
+      sha: ${{ steps.cfg.outputs.sha }}
+      is_head: ${{ steps.cfg.outputs.is_head }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: cfg
+        env:
+          REQUESTED: ${{ inputs.sha || github.sha }}
+        run: |
+          # which Netlify site this repo deploys to (platform: flow.config.json; products: .sdlc.yaml)
+          site=""
+          if [ -f flow.config.json ]; then site=$(jq -r '.netlify_site // ""' flow.config.json); fi
+          if [ -z "$site" ] && [ -f .sdlc.yaml ]; then
+            site=$(sed -n 's/^netlify_site:[[:space:]]*"\{0,1\}\([^"#[:space:]]*\).*/\1/p' .sdlc.yaml | head -1)
+          fi
+          case "$site" in ""|\{\{*) echo "::warning::no netlify_site configured in flow.config.json/.sdlc.yaml; release pipeline skipped"; site="";; esac
+          echo "site=$site" >> "$GITHUB_OUTPUT"
+          # the commit to release: must exist, must be on main; full sha; is it main's head?
+          sha=$(git rev-parse --verify "${REQUESTED}^{commit}" 2>/dev/null) || { echo "::error::'$REQUESTED' is not a commit in this repo"; exit 1; }
+          git merge-base --is-ancestor "$sha" origin/main || { echo "::error::$sha is not on main; only commits on main can be released"; exit 1; }
+          if [ "$sha" = "$(git rev-parse origin/main)" ]; then is_head=true; else is_head=false; fi
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"; echo "is_head=$is_head" >> "$GITHUB_OUTPUT"
+          echo "release candidate $sha (head of main: $is_head) → site '${site:-none}'"
+
+  # Staging is Netlify's branch deploy of main, so it can only be verified for
+  # main's current head. A re-release of an older sha skips straight to the gate.
+  staging:
+    needs: resolve
+    if: needs.resolve.outputs.site != '' && needs.resolve.outputs.is_head == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: staging
+      url: https://main--${{ needs.resolve.outputs.site }}.netlify.app
+    steps:
+      - name: Wait for Netlify to serve this commit on staging
+        env:
+          URL: https://main--${{ needs.resolve.outputs.site }}.netlify.app
+          SHA: ${{ needs.resolve.outputs.sha }}
+        run: |
+          echo "waiting for $URL/version.txt == $SHA"
+          for i in $(seq 1 "$WAIT_ATTEMPTS"); do
+            v=$(curl -fsS --max-time 20 "$URL/version.txt" 2>/dev/null | tr -d '[:space:]' || true)
+            if [ "$v" = "$SHA" ]; then echo "staging is live at $URL ($SHA)"; exit 0; fi
+            echo "  attempt $i: got '${v:-none}'"; sleep 15
+          done
+          echo "::error::staging never served $SHA. Check Netlify → Build & deploy → Branches: 'main' must be a branch deploy, and the build must write version.txt."
+          exit 1
+
+  production:
+    needs: [resolve, staging]
+    # runs after a successful staging wait, or directly for a re-release (staging skipped)
+    if: >-
+      !cancelled() && needs.resolve.result == 'success' && needs.resolve.outputs.site != ''
+      && (needs.staging.result == 'success' || needs.staging.result == 'skipped')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write      # the only job that pushes, and only to refs/heads/production
+      deployments: write
+    # Gate 5: this environment requires the release manager's approval.
+    environment:
+      name: production
+      url: https://${{ needs.resolve.outputs.site }}.netlify.app
+    env:
+      SHA: ${{ needs.resolve.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      # Environments do not copy from a template repo. If this repo's gate was
+      # never configured, refuse to release rather than release unguarded.
+      - name: Refuse to run without a configured production gate
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          reviewers=$(gh api "repos/$GITHUB_REPOSITORY/environments/production" --jq '[.protection_rules[]? | select(.type=="required_reviewers")] | length' 2>/dev/null || echo 0)
+          if [ "${reviewers:-0}" -lt 1 ]; then
+            echo "::error::the 'production' environment has no required reviewer, so this release would be unapproved. Configure it (Settings → Environments → production → Required reviewers) and re-run."
+            exit 1
+          fi
+          echo "production gate present ($reviewers reviewer rule); the approver is recorded on this deployment"
+      - name: Fast-forward the production branch (triggered by ${{ github.actor }}; approver is on the deployment record)
+        run: |
+          git fetch origin production || true
+          if git rev-parse --verify -q origin/production >/dev/null && ! git merge-base --is-ancestor origin/production "$SHA"; then
+            echo "::error::$SHA is not ahead of production; rollbacks are done by publishing a previous deploy in Netlify, then a revert PR on main."
+            exit 1
+          fi
+          git push origin "$SHA:refs/heads/production"
+          echo "production → $SHA"
+      - name: Wait for Netlify to serve this commit on production
+        env:
+          URL: https://${{ needs.resolve.outputs.site }}.netlify.app
+        run: |
+          for i in $(seq 1 "$WAIT_ATTEMPTS"); do
+            v=$(curl -fsS --max-time 20 "$URL/version.txt" 2>/dev/null | tr -d '[:space:]' || true)
+            if [ "$v" = "$SHA" ]; then echo "production is live at $URL ($SHA)"; exit 0; fi
+            echo "  attempt $i: got '${v:-none}'"; sleep 15
+          done
+          echo "::error::production never served $SHA. Check Netlify → Build & deploy → Branches: production branch must be 'production'."
+          exit 1
