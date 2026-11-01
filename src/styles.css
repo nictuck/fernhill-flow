@@ -128,7 +128,9 @@ button { font: inherit; }
 /* ---- stages ---- */
 .stages { display: grid; gap: var(--gap); grid-template-columns: repeat(7, minmax(0, 1fr)); }
 .stage-col { display: grid; gap: 8px; align-content: start; min-width: 0; }
-.stage-col > header { display: flex; align-items: center; gap: 8px; padding: 2px 2px 4px; border-bottom: 2px solid var(--line); flex-wrap: wrap; }
+/* Two-line minimum so a header that wraps ("1 stuck" + Details) does not
+   push its cards below the neighbouring columns'. */
+.stage-col > header { display: flex; align-items: center; align-content: end; gap: 8px; padding: 2px 2px 4px; border-bottom: 2px solid var(--line); flex-wrap: wrap; min-height: 68px; }
 .stage-col > header h2 { font-size: 14px; margin: 0; }
 .stage-col > header .count { color: var(--muted); font-size: 13px; }
 .stage-col > header .stuck-count { color: var(--stuck-fg); font-size: 13px; font-weight: 600; }
@@ -161,8 +163,13 @@ button { font: inherit; }
 .systems, .archive { display: grid; gap: 16px; }
 .systems table, .archive table { width: 100%; border-collapse: collapse; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); font-size: 14px; }
 .systems th, .systems td, .archive th, .archive td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; overflow-wrap: break-word; }
-.systems td:first-child, .systems td:nth-child(2), .systems td:nth-child(3) { white-space: nowrap; }
-.systems th:nth-child(5) { min-width: 14em; }
+/* Wide monitors only: keep repo and site names on one line and give the
+   status sentence room. Below this the table wraps rather than clipping
+   (body hides horizontal overflow). */
+@media (min-width: 1100px) {
+  .systems td:first-child, .systems td:nth-child(2), .systems td:nth-child(3) { white-space: nowrap; }
+  .systems th:nth-child(5) { min-width: 14em; }
+}
 .systems th, .archive th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
 .systems tr:last-child td, .archive tr:last-child td { border-bottom: 0; }
 .systems .cards { display: none; gap: 10px; }
@@ -218,5 +225,4 @@ button { font: inherit; }
 @media (min-width: 601px) {
   .systems .cards { display: none; }
   /* Done cards are always visible on wide screens; the Show/Hide toggle is a phone control */
-  .stage-col.done > header button { display: none; }
 }

@@ -208,18 +208,25 @@ describe("R9 fixture and populated", () => {
     expect(document.getElementById("stage-test-detail")).not.toBeNull();
   });
 
-  test("Done toggle reads Show/Hide, reveals cards only, and sets no aria-controls", () => {
+  test("Done expands in place too (R6): a one-line detail with the Archive count; aria-controls only while open", () => {
     renderAt("/", makeFlow({ snapshot: populatedSnapshot() }));
     const done = document.querySelector(".stage-col.done")!;
     const btn = done.querySelector("button")!;
-    expect(btn).toHaveTextContent("Show");
+    expect(btn).toHaveTextContent("Details");
     expect(btn).toHaveAttribute("aria-expanded", "false");
     expect(btn).not.toHaveAttribute("aria-controls");
     renderAt("/?stage=done", makeFlow({ snapshot: populatedSnapshot() }));
     const open = document.querySelector(".stage-col.done.is-open")!;
     expect(open.querySelector("button")).toHaveTextContent("Hide");
-    expect(open.querySelector(".stage-detail")).toBeNull();
+    expect(open.querySelector("button")).toHaveAttribute("aria-controls", "stage-done-detail");
+    expect(text(open.querySelector(".stage-detail"))).toMatch(/^1 intent on board · \d+ intents? older in Archive$/);
     expect(open.querySelectorAll(".card").length).toBe(1);
+  });
+
+  test("intent stuck analysis compares the wait, not the time in stage, with the limit", () => {
+    renderAt("/intent/0001", makeFlow({ snapshot: populatedSnapshot() }));
+    const analysis = text(document.querySelector(".analysis"));
+    expect(analysis).toMatch(/^Stuck: waited \d+ days?, limit 3 days \(design\.spec_pr_open_days\) · \d+ days? in Design\.$/);
   });
 
   test("intent header: one state string, stage after it; pending timeline entries say so in text", () => {

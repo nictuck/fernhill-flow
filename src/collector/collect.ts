@@ -540,13 +540,14 @@ async function readPlatformArtifacts(ctx: Ctx, tree: GhTreeEntry[]): Promise<Pla
 async function flaggedAtHead(ctx: Ctx, dir: string, pr: Pr): Promise<number> {
   const path = `intent/${dir}/spec.md`;
   const label = `${ctx.platform}#${pr.number} ${path}@head`;
-  const text = await soft(
-    ctx,
-    label,
-    async () =>
-      decodeBlob(asObject<GhBlob>(await ctx.client.get(`/repos/${ctx.owner}/${ctx.platform}/contents/${path}?ref=${pr.headSha}`), "contents")),
-    null,
-  );
+  // Both segments come from GitHub, but neither may reshape the URL: the
+  // head must be a full sha and the directory is encoded.
+  if (!/^[0-9a-f]{40}$/.test(pr.headSha)) {
+    warn(ctx, `${label} skipped: head is not a sha`);
+    return 0;
+  }
+  const url = `/repos/${ctx.owner}/${ctx.platform}/contents/intent/${encodeURIComponent(dir)}/spec.md?ref=${pr.headSha}`;
+  const text = await soft(ctx, label, async () => decodeBlob(asObject<GhBlob>(await ctx.client.get(url), "contents")), null);
   if (text === null) return 0;
   try {
     const v = specFrontmatter(parseFrontmatter(text));

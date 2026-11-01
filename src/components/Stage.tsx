@@ -27,6 +27,9 @@ export function StageSection({ stage, rows, stuckCount, allRows, snapshot, now, 
   const detailId = `stage-${stage}-detail`;
   const headingId = `stage-${stage}-h`;
   const detail = open && !isDone ? stageDetail(stage, allRows, snapshot, now) : null;
+  // Done's detail is one line (R6 says every header expands in place); on a
+  // phone the same toggle also reveals the Done cards (CSS `.is-open`).
+  const doneDetail = open && isDone;
 
   const cls = ["stage-col", empty ? "is-empty" : "", isDone ? "done" : "", open ? "is-open" : ""].filter(Boolean).join(" ");
 
@@ -34,7 +37,7 @@ export function StageSection({ stage, rows, stuckCount, allRows, snapshot, now, 
     navigate(open ? "/" : `/?stage=${stage}`, { replace: true });
   }
 
-  const label = isDone ? (open ? "Hide" : "Show") : open ? "Hide" : "Details";
+  const label = open ? "Hide" : "Details";
 
   return (
     <section className={cls} aria-labelledby={headingId}>
@@ -43,11 +46,18 @@ export function StageSection({ stage, rows, stuckCount, allRows, snapshot, now, 
         <span className="count">{rows.length}</span>
         {stuckCount > 0 && <span className="stuck-count">{stuckCount} stuck</span>}
         {!empty && (
-          <button type="button" aria-expanded={open} onClick={toggle} {...(detail ? { "aria-controls": detailId } : {})}>
+          <button type="button" aria-expanded={open} onClick={toggle} {...(detail || doneDetail ? { "aria-controls": detailId } : {})}>
             {label}
           </button>
         )}
       </header>
+      {doneDetail && (
+        <div className="stage-detail" id={detailId}>
+          <div>
+            {plural(rows.length, "intent")} on board · {plural(olderDone ?? 0, "intent")} older in Archive
+          </div>
+        </div>
+      )}
       {detail && (
         <div className="stage-detail" id={detailId}>
           <div>

@@ -58,8 +58,16 @@ export type Scope = "site" | "deploy";
 /** The only contexts whose snapshot outlives the deploy and is shared across deploys. */
 export const SITE_CONTEXTS: ReadonlySet<string> = new Set(["production", "branch-deploy"]);
 
-export function scopeFor(prefix: string): Scope {
-  return SITE_CONTEXTS.has(prefix) ? "site" : "deploy";
+/**
+ * Site scope is for production and the `main` branch deploy (staging). A
+ * branch deploy of any other branch — should Netlify's allowed branches ever
+ * widen — gets a deploy-scoped store so it cannot overwrite staging's board.
+ * `branch` is Netlify's build-time `BRANCH`; unknown (tests, local) means main.
+ */
+export function scopeFor(prefix: string, branch: string | undefined = process.env.BRANCH): Scope {
+  if (!SITE_CONTEXTS.has(prefix)) return "deploy";
+  if (prefix === "branch-deploy" && branch !== undefined && branch !== "main") return "deploy";
+  return "site";
 }
 
 /** Seam for tests: which Netlify store backs each scope. */

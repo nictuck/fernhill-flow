@@ -54,9 +54,9 @@ function StuckAnalysis({ d }: { d: Derived }) {
   return (
     <p className="analysis">
       {d.stuck
-        ? `Stuck: ${plural(d.days, "day")} in ${bareStage(d.stage)}${limit ? `, limit ${limit}` : ""}${key}.`
+        ? `Stuck: waited ${plural(d.waitDays, "day")}${limit ? `, limit ${limit}` : ""}${key} · ${plural(d.days, "day")} in ${bareStage(d.stage)}.`
         : limit
-          ? `Not stuck: ${plural(d.days, "day")} in ${bareStage(d.stage)}, limit ${limit}${key}.`
+          ? `Not stuck: waited ${plural(d.waitDays, "day")}, limit ${limit}${key} · ${plural(d.days, "day")} in ${bareStage(d.stage)}.`
           : `${plural(d.days, "day")} in ${bareStage(d.stage)}; no threshold applies.`}
     </p>
   );

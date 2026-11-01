@@ -94,6 +94,32 @@ separately (comment on the PR): fixture served from Blobs under
   disposition landed; badges carry text; keyboard reachability; 375
   layouts stack without overflow; new color pairs ≥ 5:1.
 
-## Re-check
+## Re-check (after the fixes)
 
-_(appended after the fixes)_
+- **Security-lead: clear.** Store scope and failure-floor fixes verified in
+  code and tests; new spec-head read judged safe (same-repo PRs only,
+  validated `flagged` only). Nits taken: the head sha is checked and the
+  directory segment encoded before the `contents` URL is built; a branch
+  deploy of any branch other than `main` gets a deploy-scoped store
+  (`scopeFor(prefix, BRANCH)`). Carried for the release record: Netlify's
+  fork-preview policy ("require approval") is the backstop against hostile
+  preview code; `lastError` returned on the floor path stays sanitized.
+- **Tech-reviewer: fixes 1–4 verified** (window, Maintain clock, R15
+  warning with `BASELINE_CALLS = 33` from the second spike, `flagged` at
+  head). One remaining Important — the Intent page's stuck analysis still
+  compared time-in-stage with the limit — **fixed:** it now reads "Stuck:
+  waited N days, limit L (key) · M days in Stage" and is asserted in R9.
+  Nit taken: R2 amended in platform PR #7 so the spec says a waiting
+  card's days are the wait. Carried: `pulls?per_page=100` page-1 horizon,
+  `Plan.onMain` always true, `previous.json` unread.
+- **UX: 2 Important after the first fixes, both taken** — the same
+  stuck-analysis contradiction (above) and `nowrap` Systems columns that
+  clipped between 601 and ~1050 px (now applied only ≥ 1100 px; narrower
+  tables wrap). Nits taken: stage headers have a two-line minimum so a
+  wrapped header no longer pushes its cards down; Done expands in place
+  with a one-line detail ("N on board · M older in Archive") so
+  `/?stage=done` works (R6). Screenshots retaken.
+
+Final state: `make check` → `check: ok`, 24 files / 323 tests. Merge
+waits on gate 3 (the engineer's `status: approved` on the plan), which
+EX-001 does not cover.
