@@ -5,6 +5,13 @@
   command = 'make build && mkdir -p dist && echo "$COMMIT_REF" > dist/version.txt'
   publish = "dist"
 
+[build.environment]
+  NODE_VERSION = "24"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
 [context.production]
   environment = { SDLC_ENV = "production" }
 
@@ -13,3 +20,21 @@
 
 [context.deploy-preview]
   environment = { SDLC_ENV = "preview" }
+
+# API routes → functions. GITHUB_TOKEN is set by a person in Netlify for the
+# production and branch-deploy contexts only; previews run in fixture mode.
+[[redirects]]
+  from = "/api/flow"
+  to = "/.netlify/functions/flow"
+  status = 200
+
+[[redirects]]
+  from = "/api/refresh"
+  to = "/.netlify/functions/refresh"
+  status = 200
+
+# SPA fallback. Existing files (index.html, assets, version.txt) win.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

@@ -9,5 +9,5 @@ product: "fernhill-flow"
 netlify_site: "fernhill-flow"
 intents: ["0001"]
 created: "2026-11-01"
-stack: ""                                   # set by the first plan, e.g. "vite+react"
+stack: "vite+react+netlify-functions"
 publish_dir: dist

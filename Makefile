@@ -1,18 +1,24 @@
-# One command per check. CI runs `make check`. The first plan replaces the
-# TODO bodies with the real stack commands and removes the notice.
-.PHONY: check build test lint dev
+# One command per check. CI runs `make check`; Netlify runs `make build`.
+# Dependencies: `npm ci` (CI and Netlify do it before these targets).
+.PHONY: check build test lint dev spike
 
 check: build test lint
 	@echo "check: ok"
 
 build:
-	@echo "TODO: configure 'make build' for this stack (plan step 1)"
+	npm run build
 
 test:
-	@echo "TODO: configure 'make test' for this stack (plan step 1)"
+	npm test
 
 lint:
-	@echo "TODO: configure 'make lint' for this stack (plan step 1)"
+	npm run lint
 
+# Local, no token: fixture data. http://localhost:8888
 dev:
-	@echo "TODO: configure 'make dev' for this stack (plan step 1)"
+	npm run dev
+
+# Plan step 1: measure the live collector against the real repos (R15).
+# Uses the local `gh` login; the token stays in the process env.
+spike:
+	GITHUB_TOKEN="$$(gh auth token)" npm run spike
