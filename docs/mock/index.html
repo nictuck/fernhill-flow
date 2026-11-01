@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flow — static mock (plan step 0)</title>
+<link rel="stylesheet" href="mock.css">
+</head>
+<body>
+<main class="mock-page">
+  <h1>Flow — static mock</h1>
+  <p class="lead">Plan step 0 for intent 0001, revised after the UX persona's review (<code>docs/reviews/0001-mock-ux.md</code>). Every state the spec names, at 375 and 1440, light and dark. Nothing here is wired; the real app's <code>styles.css</code> grows from <code>mock.css</code> and its components from this markup. Copy is the spec's <em>UI state copy</em> table, verbatim; the state line is one string everywhere: <em>badge</em> + rest + <em>stuck badge</em>.</p>
+
+  <!-- ============================================================ -->
+  <section class="mock-section">
+    <h2>1 · The card, every state — light and dark</h2>
+    <div class="mock-row">
+      <div class="frame w720 mock-col" style="padding:12px">
+        <article class="card is-stuck">
+          <div class="head"><span class="id">0001</span><span class="title"><a href="#">Flow dashboard</a></span><span class="stage">2 Design</span></div>
+          <div class="state"><span class="badge waiting">Waiting on product owner</span> for 6 days <span class="badge stuck">stuck, limit 3</span></div>
+          <div class="action"><a href="#">Accept spec 0001 (2 concerns open)</a></div>
+        </article>
+        <article class="card">
+          <div class="head"><span class="id">0002</span><span class="title"><a href="#">Incident digest</a></span><span class="stage">3 Build</span></div>
+          <div class="state"><span class="badge waiting">Waiting on engineer</span> for 1 day</div>
+          <div class="action"><span class="cmd"><code>/plan 0002</code><button type="button" aria-label="Copy /plan 0002">Copy</button></span><a href="#">View repo</a></div>
+        </article>
+        <article class="card">
+          <div class="head"><span class="id">0003</span><span class="title"><a href="#">Release notes bot</a></span><span class="stage">4 Test</span></div>
+          <div class="state"><span class="badge waiting">Waiting on code owner</span> for 2 days</div>
+          <div class="action"><a href="#">Review and merge PR #14</a></div>
+        </article>
+        <article class="card">
+          <div class="head"><span class="id">0007</span><span class="title"><a href="#">Search index</a></span><span class="stage">4 Test</span></div>
+          <div class="state"><span class="badge progress">In progress</span> · 0 days</div>
+        </article>
+        <article class="card is-stuck">
+          <div class="head"><span class="id">0004</span><span class="title"><a href="#">Persona editor</a></span><span class="stage">4 Test</span></div>
+          <div class="state"><span class="badge waiting">Waiting on engineer</span> for 2 days <span class="badge ci-red">CI red</span> <span class="badge stuck">stuck, limit 1</span></div>
+          <div class="action"><a href="#">CI failing on PR #9</a></div>
+        </article>
+        <article class="card">
+          <div class="head"><span class="id">0005</span><span class="title"><a href="#">Status page</a></span><span class="stage">6 Maintain</span></div>
+          <div class="state"><span class="badge live">Live</span> since 12 Oct · no open incidents</div>
+        </article>
+        <article class="card">
+          <div class="head"><span class="id">0006</span><span class="title"><a href="#">Onboarding checklist</a></span><span class="stage">Done</span></div>
+          <div class="state"><span class="badge done">Done</span> 12 Oct · 18 days on board</div>
+        </article>
+      </div>
+      <div class="frame w720 dark mock-col" style="padding:12px">
+        <article class="card is-stuck">
+          <div class="head"><span class="id">0001</span><span class="title"><a href="#">Flow dashboard</a></span><span class="stage">2 Design</span></div>
+          <div class="state"><span class="badge waiting">Waiting on product owner</span> for 6 days <span class="badge stuck">stuck, limit 3</span></div>
+          <div class="action"><a href="#">Accept spec 0001 (2 concerns open)</a></div>
+        </article>
+        <article class="card">
+          <div class="head"><span class="id">0002</span><span class="title"><a href="#">Incident digest</a></span><span class="stage">3 Build</span></div>
+          <div class="state"><span class="badge waiting">Waiting on engineer</span> for 1 day</div>
+          <div class="action"><span class="cmd"><code>/plan 0002</code><button type="button" aria-label="Copy /plan 0002">Copy</button></span><a href="#">View repo</a></div>
+        </article>
+        <article class="card">
+          <div class="head"><span class="id">0003</span><span class="title"><a href="#">Release notes bot</a></span><span class="stage">4 Test</span></div>
+          <div class="state"><span class="badge waiting">Waiting on code owner</span> for 2 days</div>
+          <div class="action"><a href="#">Review and merge PR #14</a></div>
+        </article>
+        <article class="card">
+          <div class="head"><span class="id">0007</span><span class="title"><a href="#">Search index</a></span><span class="stage">4 Test</span></div>
+          <div class="state"><span class="badge progress">In progress</span> · 0 days</div>
+        </article>
+        <article class="card is-stuck">
+          <div class="head"><span class="id">0004</span><span class="title"><a href="#">Persona editor</a></span><span class="stage">4 Test</span></div>
+          <div class="state"><span class="badge waiting">Waiting on engineer</span> for 2 days <span class="badge ci-red">CI red</span> <span class="badge stuck">stuck, limit 1</span></div>
+          <div class="action"><a href="#">CI failing on PR #9</a></div>
+        </article>
+        <article class="card">
+          <div class="head"><span class="id">0005</span><span class="title"><a href="#">Status page</a></span><span class="stage">6 Maintain</span></div>
+          <div class="state"><span class="badge live">Live</span> since 12 Oct · no open incidents</div>
+        </article>
+        <article class="card">
+          <div class="head"><span class="id">0006</span><span class="title"><a href="#">Onboarding checklist</a></span><span class="stage">Done</span></div>
+          <div class="state"><span class="badge done">Done</span> 12 Oct · 18 days on board</div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="mock-section">
+    <h2>2 · Board at 1440, populated — Needs you first, exception strip, 7 stage sections, Done footer</h2>
+    <div class="frame w1440">
+      <header class="topbar"><span class="brand">Flow</span><nav><a href="#" aria-current="page">Board</a><a href="#">Systems</a><a href="#">Archive</a></nav><span class="spacer"></span><div class="fresh"><span class="dot"></span>Snapshot from 3 min ago · <button type="button">Refresh</button></div></header>
+      <div class="page">
+        <section class="needs" aria-labelledby="needs-h">
+          <h2 id="needs-h">Needs you (4)</h2>
+          <div class="role"><h3>Product owner</h3>
+            <div class="row"><span class="who"><a href="#">0001 Flow dashboard</a></span><span class="what"><a href="#">Accept spec 0001 (2 concerns open)</a></span><span class="meta">6 days <span class="badge stuck">stuck, limit 3</span></span></div>
+          </div>
+          <div class="role"><h3>Engineer</h3>
+            <div class="row"><span class="who"><a href="#">0004 Persona editor</a></span><span class="what"><a href="#">CI failing on PR #9</a></span><span class="meta">2 days <span class="badge stuck">stuck, limit 1</span></span></div>
+            <div class="row"><span class="who"><a href="#">0002 Incident digest</a></span><span class="what"><span class="cmd"><code>/plan 0002</code><button type="button" aria-label="Copy /plan 0002">Copy</button></span><a href="#">View repo</a></span><span class="meta">1 day</span></div>
+          </div>
+          <div class="role"><h3>Code owner</h3>
+            <div class="row"><span class="who"><a href="#">0003 Release notes bot</a></span><span class="what"><a href="#">Review and merge PR #14</a></span><span class="meta">2 days</span></div>
+          </div>
+        </section>
+        <div class="banner exception"><strong>Exception EX-001 active</strong> — grants merge in 3 repos until 30 Nov. <a href="#">Read it</a></div>
+        <section class="stages" aria-label="Stages">
+          <div class="stage-col is-empty"><header><h2>1 Plan</h2><span class="count">0</span></header><div class="empty">No intents in Plan</div></div>
+          <div class="stage-col"><header><h2>2 Design</h2><span class="count">1</span><span class="stuck-count">1 stuck</span><button type="button" aria-expanded="false">Details</button></header>
+            <article class="card is-stuck"><div class="head"><span class="id">0001</span><span class="title"><a href="#">Flow dashboard</a></span></div><div class="state"><span class="badge waiting">Waiting on product owner</span> for 6 days <span class="badge stuck">stuck, limit 3</span></div><div class="action"><a href="#">Accept spec 0001 (2 concerns open)</a></div></article>
+          </div>
+          <div class="stage-col"><header><h2>3 Build</h2><span class="count">1</span><button type="button" aria-expanded="true">Hide</button></header>
+            <div class="stage-detail"><span>0002 Incident digest · 1 day in stage</span></div>
+            <article class="card"><div class="head"><span class="id">0002</span><span class="title"><a href="#">Incident digest</a></span></div><div class="state"><span class="badge waiting">Waiting on engineer</span> for 1 day</div><div class="action"><span class="cmd"><code>/plan 0002</code><button type="button" aria-label="Copy /plan 0002">Copy</button></span><a href="#">View repo</a></div></article>
+          </div>
+          <div class="stage-col"><header><h2>4 Test</h2><span class="count">3</span><span class="stuck-count">1 stuck</span><button type="button" aria-expanded="false">Details</button></header>
+            <article class="card is-stuck"><div class="head"><span class="id">0004</span><span class="title"><a href="#">Persona editor</a></span></div><div class="state"><span class="badge waiting">Waiting on engineer</span> for 2 days <span class="badge ci-red">CI red</span> <span class="badge stuck">stuck, limit 1</span></div><div class="action"><a href="#">CI failing on PR #9</a></div></article>
+            <article class="card"><div class="head"><span class="id">0003</span><span class="title"><a href="#">Release notes bot</a></span></div><div class="state"><span class="badge waiting">Waiting on code owner</span> for 2 days</div><div class="action"><a href="#">Review and merge PR #14</a></div></article>
+            <article class="card"><div class="head"><span class="id">0007</span><span class="title"><a href="#">Search index</a></span></div><div class="state"><span class="badge progress">In progress</span> · 0 days</div></article>
+          </div>
+          <div class="stage-col is-empty"><header><h2>5 Deploy</h2><span class="count">0</span></header><div class="empty">No intents in Deploy</div></div>
+          <div class="stage-col"><header><h2>6 Maintain</h2><span class="count">1</span><button type="button" aria-expanded="false">Details</button></header>
+            <article class="card"><div class="head"><span class="id">0005</span><span class="title"><a href="#">Status page</a></span></div><div class="state"><span class="badge live">Live</span> since 12 Oct · no open incidents</div></article>
+          </div>
+          <div class="stage-col done"><header><h2>Done</h2><span class="count">1</span></header>
+            <article class="card"><div class="head"><span class="id">0006</span><span class="title"><a href="#">Onboarding checklist</a></span></div><div class="state"><span class="badge done">Done</span> 12 Oct · 18 days on board</div></article>
+            <div class="footer">Done: 4 older → <a href="#">Archive</a></div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="mock-section">
+    <h2>2b · Board at 1440 — "nothing waits"</h2>
+    <div class="frame w1440">
+      <header class="topbar"><span class="brand">Flow</span><nav><a href="#" aria-current="page">Board</a><a href="#">Systems</a><a href="#">Archive</a></nav><span class="spacer"></span><div class="fresh"><span class="dot"></span>Snapshot from 1 min ago · <button type="button">Refresh</button></div></header>
+      <div class="page">
+        <section class="needs"><h2>Needs you (0)</h2><div class="quiet">Nothing is waiting on you. 2 in progress, 0 stuck.</div></section>
+        <section class="stages" aria-label="Stages">
+          <div class="stage-col is-empty"><header><h2>1 Plan</h2><span class="count">0</span></header><div class="empty">No intents in Plan</div></div>
+          <div class="stage-col is-empty"><header><h2>2 Design</h2><span class="count">0</span></header><div class="empty">No intents in Design</div></div>
+          <div class="stage-col"><header><h2>3 Build</h2><span class="count">1</span><button type="button" aria-expanded="false">Details</button></header>
+            <article class="card"><div class="head"><span class="id">0002</span><span class="title"><a href="#">Incident digest</a></span></div><div class="state"><span class="badge progress">In progress</span> · 1 day</div></article></div>
+          <div class="stage-col"><header><h2>4 Test</h2><span class="count">1</span><button type="button" aria-expanded="false">Details</button></header>
+            <article class="card"><div class="head"><span class="id">0007</span><span class="title"><a href="#">Search index</a></span></div><div class="state"><span class="badge progress">In progress</span> · 0 days</div></article></div>
+          <div class="stage-col is-empty"><header><h2>5 Deploy</h2><span class="count">0</span></header><div class="empty">No intents in Deploy</div></div>
+          <div class="stage-col"><header><h2>6 Maintain</h2><span class="count">1</span><button type="button" aria-expanded="false">Details</button></header>
+            <article class="card"><div class="head"><span class="id">0005</span><span class="title"><a href="#">Status page</a></span></div><div class="state"><span class="badge live">Live</span> since 12 Oct · no open incidents</div></article></div>
+          <div class="stage-col done is-empty"><header><h2>Done</h2><span class="count">0</span></header><div class="footer">Done: 5 older → <a href="#">Archive</a></div></div>
+        </section>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="mock-section">
+    <h2>3 · Board at 375 — populated (dark) and "nothing waits" (light)</h2>
+    <div class="mock-row">
+      <div>
+        <p class="frame-label">375 · populated · dark · Done collapsed by default</p>
+        <div class="frame w375 dark">
+          <header class="topbar"><span class="brand">Flow</span><nav><a href="#" aria-current="page">Board</a><a href="#">Systems</a><a href="#">Archive</a></nav></header>
+          <div class="page">
+            <div class="fresh refreshing"><span class="dot"></span>Showing snapshot from 3 min ago · refreshing…</div>
+            <section class="needs"><h2>Needs you (4)</h2>
+              <div class="role"><h3>Product owner</h3><div class="row"><span class="who"><a href="#">0001 Flow dashboard</a></span><span class="meta">6 days <span class="badge stuck">stuck, limit 3</span></span><span class="what"><a href="#">Accept spec 0001 (2 concerns open)</a></span></div></div>
+              <div class="role"><h3>Engineer</h3><div class="row"><span class="who"><a href="#">0004 Persona editor</a></span><span class="meta">2 days <span class="badge stuck">stuck, limit 1</span></span><span class="what"><a href="#">CI failing on PR #9</a></span></div><div class="row"><span class="who"><a href="#">0002 Incident digest</a></span><span class="meta">1 day</span><span class="what"><span class="cmd"><code>/plan 0002</code><button type="button" aria-label="Copy /plan 0002">Copy</button></span><a href="#">View repo</a></span></div></div>
+              <div class="role"><h3>Code owner</h3><div class="row"><span class="who"><a href="#">0003 Release notes bot</a></span><span class="meta">2 days</span><span class="what"><a href="#">Review and merge PR #14</a></span></div></div>
+            </section>
+            <div class="banner exception"><strong>Exception EX-001 active</strong> — grants merge in 3 repos until 30 Nov. <a href="#">Read it</a></div>
+            <section class="stages">
+              <div class="stage-col is-empty"><header><h2>1 Plan</h2><span class="count">0</span></header><div class="empty">No intents in Plan</div></div>
+              <div class="stage-col"><header><h2>2 Design</h2><span class="count">1</span><span class="stuck-count">1 stuck</span></header>
+                <article class="card is-stuck"><div class="head"><span class="id">0001</span><span class="title"><a href="#">Flow dashboard</a></span></div><div class="state"><span class="badge waiting">Waiting on product owner</span> for 6 days <span class="badge stuck">stuck, limit 3</span></div><div class="action"><a href="#">Accept spec 0001 (2 concerns open)</a></div></article></div>
+              <div class="stage-col"><header><h2>3 Build</h2><span class="count">1</span></header>
+                <article class="card"><div class="head"><span class="id">0002</span><span class="title"><a href="#">Incident digest</a></span></div><div class="state"><span class="badge waiting">Waiting on engineer</span> for 1 day</div><div class="action"><span class="cmd"><code>/plan 0002</code><button type="button" aria-label="Copy /plan 0002">Copy</button></span><a href="#">View repo</a></div></article></div>
+              <div class="stage-col"><header><h2>4 Test</h2><span class="count">3</span><span class="stuck-count">1 stuck</span></header>
+                <article class="card is-stuck"><div class="head"><span class="id">0004</span><span class="title"><a href="#">Persona editor</a></span></div><div class="state"><span class="badge waiting">Waiting on engineer</span> for 2 days <span class="badge ci-red">CI red</span> <span class="badge stuck">stuck, limit 1</span></div><div class="action"><a href="#">CI failing on PR #9</a></div></article>
+                <article class="card"><div class="head"><span class="id">0003</span><span class="title"><a href="#">Release notes bot</a></span></div><div class="state"><span class="badge waiting">Waiting on code owner</span> for 2 days</div><div class="action"><a href="#">Review and merge PR #14</a></div></article>
+                <article class="card"><div class="head"><span class="id">0007</span><span class="title"><a href="#">Search index</a></span></div><div class="state"><span class="badge progress">In progress</span> · 0 days</div></article></div>
+              <div class="stage-col is-empty"><header><h2>5 Deploy</h2><span class="count">0</span></header><div class="empty">No intents in Deploy</div></div>
+              <div class="stage-col"><header><h2>6 Maintain</h2><span class="count">1</span></header>
+                <article class="card"><div class="head"><span class="id">0005</span><span class="title"><a href="#">Status page</a></span></div><div class="state"><span class="badge live">Live</span> since 12 Oct · no open incidents</div></article></div>
+              <div class="stage-col done"><header><h2>Done</h2><span class="count">1</span><button type="button" aria-expanded="false">Show</button></header>
+                <article class="card"><div class="head"><span class="id">0006</span><span class="title"><a href="#">Onboarding checklist</a></span></div><div class="state"><span class="badge done">Done</span> 12 Oct · 18 days on board</div></article>
+                <div class="footer">Done: 4 older → <a href="#">Archive</a></div></div>
+            </section>
+          </div>
+        </div>
+      </div>
+      <div>
+        <p class="frame-label">375 · nothing waits · light</p>
+        <div class="frame w375">
+          <header class="topbar"><span class="brand">Flow</span><nav><a href="#" aria-current="page">Board</a><a href="#">Systems</a><a href="#">Archive</a></nav></header>
+          <div class="page">
+            <div class="fresh"><span class="dot"></span>Snapshot from 1 min ago · <button type="button">Refresh</button></div>
+            <section class="needs"><h2>Needs you (0)</h2><div class="quiet">Nothing is waiting on you. 2 in progress, 0 stuck.</div></section>
+            <section class="stages">
+              <div class="stage-col is-empty"><header><h2>1 Plan</h2><span class="count">0</span></header><div class="empty">No intents in Plan</div></div>
+              <div class="stage-col is-empty"><header><h2>2 Design</h2><span class="count">0</span></header><div class="empty">No intents in Design</div></div>
+              <div class="stage-col"><header><h2>3 Build</h2><span class="count">1</span></header>
+                <article class="card"><div class="head"><span class="id">0002</span><span class="title"><a href="#">Incident digest</a></span></div><div class="state"><span class="badge progress">In progress</span> · 1 day</div></article></div>
+              <div class="stage-col"><header><h2>4 Test</h2><span class="count">1</span></header>
+                <article class="card"><div class="head"><span class="id">0007</span><span class="title"><a href="#">Search index</a></span></div><div class="state"><span class="badge progress">In progress</span> · 0 days</div></article></div>
+              <div class="stage-col is-empty"><header><h2>5 Deploy</h2><span class="count">0</span></header><div class="empty">No intents in Deploy</div></div>
+              <div class="stage-col"><header><h2>6 Maintain</h2><span class="count">1</span></header>
+                <article class="card"><div class="head"><span class="id">0005</span><span class="title"><a href="#">Status page</a></span></div><div class="state"><span class="badge live">Live</span> since 12 Oct · no open incidents</div></article></div>
+              <div class="stage-col done is-empty"><header><h2>Done</h2><span class="count">0</span></header><div class="footer">Done: 5 older → <a href="#">Archive</a></div></div>
+            </section>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="mock-section">
+    <h2>4 · Freshness strip — loading and four states (the recovery control is always present)</h2>
+    <div class="frame w720 mock-col" style="padding:12px">
+      <div class="fresh loading"><span class="dot"></span>Loading the board…</div>
+      <div class="fresh"><span class="dot"></span>Snapshot from 3 min ago · <button type="button">Refresh</button></div>
+      <div class="fresh refreshing"><span class="dot"></span>Showing snapshot from 3 min ago · refreshing…</div>
+      <div class="fresh stale"><span class="dot"></span>Stale — last refresh 2 h ago. <button type="button">Refresh now</button>. If it fails, check the function log and the token expiry.</div>
+      <div class="fresh failed"><span class="dot"></span>Refresh failed at 14:02 (GitHub 502). Showing the snapshot from 13:50. <button type="button">Refresh</button></div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="mock-section">
+    <h2>5 · Error screen, empty board, fixture-mode banner</h2>
+    <div class="mock-row">
+      <div class="frame w720"><div class="page">
+        <div class="fresh failed"><span class="dot"></span>Refresh failed at 14:02 (GitHub 401). Showing the snapshot from 13:50. <button type="button">Refresh</button></div>
+        <div class="error-screen"><h2>GitHub rejected the token.</h2><p>Rotate <code>GITHUB_TOKEN</code> in Netlify → Site configuration → Environment variables, then Refresh.</p><button type="button">Refresh</button><p class="label">Other copies this screen uses: "GitHub rate limit reached; resets at 15:00. Showing the snapshot from 14:10." · "<code>fernhill-x</code> is in flow.config.json but the token cannot see it. Add it to the token's selected repositories."</p></div>
+      </div></div>
+      <div class="frame w720 dark"><div class="page">
+        <div class="banner fixture">This deploy has no GitHub token; showing fixture data.</div>
+        <div class="empty-screen"><p>No intents yet. Run <code>/intent</code> in fernhill-platform to write the first one.</p></div>
+      </div></div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="mock-section">
+    <h2>6 · Systems at 1440 (table) and 375 (cards, complete)</h2>
+    <div class="frame w1440">
+      <header class="topbar"><span class="brand">Flow</span><nav><a href="#">Board</a><a href="#" aria-current="page">Systems</a><a href="#">Archive</a></nav><span class="spacer"></span><div class="fresh"><span class="dot"></span>Snapshot from 3 min ago · <button type="button">Refresh</button></div></header>
+      <div class="page systems">
+        <a class="back" href="#">← Board</a>
+        <table>
+          <thead><tr><th>Repo</th><th>Staging (main)</th><th>Production</th><th>Production branch</th><th>Status</th><th>Last release</th><th>main CI</th><th>Open</th></tr></thead>
+          <tbody>
+            <tr><td><strong>fernhill-platform</strong><br><span class="label">company front door</span></td><td><a href="#">main--fernhillplatform</a><br><span class="sha">784d585</span></td><td><a href="#">fernhillplatform</a><br><span class="sha">32e1f02</span></td><td><span class="sha">32e1f02</span></td><td><span class="line-behind">Production is 3 commits behind staging (since 31 Oct)</span></td><td><a href="#">run #41246873678</a> · <span class="badge waiting">pending approval</span></td><td><span class="badge ci-green">green</span></td><td>0 incidents · <a href="#">1 PR</a></td></tr>
+            <tr><td><strong>fernhill-flow</strong></td><td><a href="#">main--fernhill-flow</a><br><span class="sha">a1b2c3d</span></td><td><a href="#">fernhill-flow</a><br><span class="sha">a1b2c3d</span></td><td><span class="sha">a1b2c3d</span></td><td><span class="line-ok">Production matches staging</span></td><td><a href="#">run #41301</a> · <span class="badge live">deployed</span> by nictuck</td><td><span class="badge ci-green">green</span></td><td>0 incidents · 0 PRs</td></tr>
+            <tr><td><strong>fernhill-status</strong></td><td><a href="#">main--fernhill-status</a><br><span class="sha">9f9f9f9</span></td><td><a href="#">fernhill-status</a><br><span class="sha">1111111</span></td><td><span class="sha">9f9f9f9</span></td><td><span class="line-rollback">Rollback in effect: production serves 1111111, branch is at 9f9f9f9</span></td><td><a href="#">run #41299</a> · <span class="badge live">deployed</span></td><td><span class="badge ci-red">red</span></td><td><a href="#">1 incident</a> · 0 PRs</td></tr>
+          </tbody>
+        </table>
+        <div class="banner exception"><strong>Exception EX-001 active</strong> — grants merge in 3 repos until 30 Nov. <a href="#">Read it</a></div>
+      </div>
+    </div>
+    <div class="mock-row" style="margin-top:16px">
+      <div class="frame w375 dark"><div class="page systems">
+        <a class="back" href="#">← Board</a>
+        <div class="cards">
+          <div class="sys-card"><strong>fernhill-platform</strong> <span class="label">company front door</span>
+            <div class="row2"><span class="label">Staging</span><span><a href="#">main--fernhillplatform</a> · <span class="sha">784d585</span></span></div>
+            <div class="row2"><span class="label">Production</span><span><a href="#">fernhillplatform</a> · <span class="sha">32e1f02</span> · branch <span class="sha">32e1f02</span></span></div>
+            <div class="line-behind">Production is 3 commits behind staging (since 31 Oct)</div>
+            <div><a href="#">run #41246873678</a> · <span class="badge waiting">pending approval</span></div>
+            <div>main CI <span class="badge ci-green">green</span> · 0 incidents · <a href="#">1 PR</a></div>
+          </div>
+          <div class="sys-card"><strong>fernhill-status</strong>
+            <div class="row2"><span class="label">Staging</span><span><a href="#">main--fernhill-status</a> · <span class="sha">9f9f9f9</span></span></div>
+            <div class="row2"><span class="label">Production</span><span><a href="#">fernhill-status</a> · <span class="sha">1111111</span> · branch <span class="sha">9f9f9f9</span></span></div>
+            <div class="line-rollback">Rollback in effect: production serves 1111111, branch is at 9f9f9f9</div>
+            <div><a href="#">run #41299</a> · <span class="badge live">deployed</span></div>
+            <div>main CI <span class="badge ci-red">red</span> · <a href="#">1 incident</a> · 0 PRs</div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="mock-section">
+    <h2>7 · Intent detail — header and timeline entries</h2>
+    <div class="frame w720"><div class="page">
+      <a class="back" href="#">← Board</a>
+      <div class="intent-head"><span class="id">0001</span><h1>Flow dashboard</h1><div class="state"><span class="badge waiting">Waiting on product owner</span> for 6 days <span class="badge stuck">stuck, limit 3</span> <span class="label">2 Design</span></div><div class="action"><a href="#">Accept spec 0001 (2 concerns open)</a></div></div>
+      <ol class="timeline">
+        <li><span class="when">31 Oct 17:02</span><span class="tick"></span><span class="what"><span><a href="#">PR #1</a> intent 0001 opened</span><span class="who">nictuck</span></span></li>
+        <li><span class="when">31 Oct 18:33</span><span class="tick"></span><span class="what"><span>Intent accepted (gate 1) — <a href="#">PR #1</a> merged</span><span class="who">nictuck · merge commit a3f9c1e</span><span class="exc">under EX-001</span></span></li>
+        <li><span class="when">31 Oct 18:50</span><span class="tick pending"></span><span class="what"><span><a href="#">PR #5</a> spec 0001 opened · <span class="badge ci-red">CI red</span> · 2 concerns open</span><span class="who">nictuck · waiting on product owner</span></span></li>
+      </ol>
+    </div></div>
+  </section>
+</main>
+</body>
+</html>
