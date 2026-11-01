@@ -1,9 +1,9 @@
-# {{SLUG}}
+# fernhill-flow
 
-Fernhill product for intent {{INTENT}}. The process is
+Fernhill product for intent 0001. The process is
 `../../fernhill-platform/docs/flow.md` (or the GitHub copy linked in
 README). The spec you build against is
-`../../fernhill-platform/intent/{{INTENT_DIR}}/spec.md`.
+`../../fernhill-platform/intent/0001-flow-dashboard/spec.md`.
 
 ## Commands
 
@@ -11,8 +11,8 @@ README). The spec you build against is
   Healthy output ends with `check: ok`.
 - `make build` / `make test` / `make lint` — individually.
 - `make dev` — run locally.
-- Staging: `https://main--{{SITE}}.netlify.app` (every merge). Production:
-  `https://{{SITE}}.netlify.app` (the `production` branch, moved by the
+- Staging: `https://main--fernhill-flow.netlify.app` (every merge). Production:
+  `https://fernhill-flow.netlify.app` (the `production` branch, moved by the
   `release` workflow after the release manager approves).
 - Rollback: fast — release manager publishes a previous deploy in Netlify
   (Deploys → pick one → Publish deploy); durable — revert PR on `main`,
@@ -27,7 +27,7 @@ directory is named in three places that move together: `netlify.toml`
 
 ## Stage skills
 
-- `/plan {{INTENT}}` — plan mode against the spec; writes `plan/{{INTENT}}-<slug>.md`;
+- `/plan 0001` — plan mode against the spec; writes `plan/0001-<slug>.md`;
   you approve it before any code changes.
 - `/fix <incident path or description>` — failing test first, then the fix;
   tests are read-only while the fix task is active.
@@ -36,7 +36,7 @@ directory is named in three places that move together: `netlify.toml`
 
 - Every change has a plan in `plan/`. Code commits that touch no plan file
   are blocked unless the message says `plan-unchanged` (hook).
-- Branch per plan: `build/{{INTENT}}-<slug>`. One PR per plan.
+- Branch per plan: `build/0001-<slug>`. One PR per plan.
 - Tests prove requirements: name tests after the spec's `R1..Rn`.
 - Never push to `main` or `production`, merge, approve, or start a
   `release` run. Hooks block it; the code owner and release manager do

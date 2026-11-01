@@ -3,11 +3,11 @@
 company: Fernhill Software
 platform_repo: nictuck/fernhill-platform
 platform_path: ../../fernhill-platform     # local clone, relative to this repo
-product: "{{SLUG}}"
+product: "fernhill-flow"
 # Netlify site name: https://<site>.netlify.app is production, main--<site> is staging.
 # Keep this line free of trailing comments; the release workflow parses it.
-netlify_site: "{{SITE}}"
-intents: ["{{INTENT}}"]
-created: "{{DATE}}"
+netlify_site: "fernhill-flow"
+intents: ["0001"]
+created: "2026-11-01"
 stack: ""                                   # set by the first plan, e.g. "vite+react"
 publish_dir: dist
