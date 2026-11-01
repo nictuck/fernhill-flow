@@ -1,0 +1,602 @@
+{
+  "schemaVersion": 1,
+  "collectedAt": "2026-11-10T12:00:00.000Z",
+  "config": {
+    "github_owner": "nictuck",
+    "platform_repo": "fernhill-platform",
+    "repos": [
+      {
+        "name": "fernhill-platform",
+        "site": "fernhillplatform",
+        "kind": "platform"
+      },
+      {
+        "name": "fernhill-flow",
+        "site": "fernhill-flow",
+        "kind": "product"
+      }
+    ],
+    "thresholds": {
+      "plan.pr_open_days": 3,
+      "design.no_spec_pr_days": 5,
+      "design.spec_pr_open_days": 3,
+      "build.no_repo_days": 5,
+      "build.no_plan_days": 5,
+      "build.branch_idle_days": 3,
+      "test.ci_red_days": 1,
+      "test.review_pending_days": 2,
+      "deploy.approval_pending_days": 2,
+      "maintain.untriaged_days": 1
+    },
+    "refresh": {
+      "interval_minutes": 10,
+      "floor_seconds": 60
+    },
+    "board": {
+      "done_days": 30
+    }
+  },
+  "platform": {
+    "intents": [
+      {
+        "id": "0001",
+        "title": "Flow dashboard",
+        "status": "accepted",
+        "author": "Nicholas Tucker",
+        "origin": "idea",
+        "product": "fernhill-flow",
+        "created": "2026-10-31",
+        "dir": "0001-flow-dashboard",
+        "url": "https://github.com/nictuck/fernhill-platform/tree/main/intent/0001-flow-dashboard",
+        "acceptedAt": "2026-11-02T12:00:00.000Z",
+        "spec": {
+          "status": "proposed",
+          "flagged": 2,
+          "url": "https://github.com/nictuck/fernhill-platform/blob/design/0001-flow-dashboard/intent/0001-flow-dashboard/spec.md",
+          "prNumber": 5,
+          "prOpenedAt": "2026-11-04T12:00:00.000Z"
+        }
+      },
+      {
+        "id": "0002",
+        "title": "Incident digest",
+        "status": "accepted",
+        "author": "Nicholas Tucker",
+        "origin": "idea",
+        "product": "fernhill-flow",
+        "created": "2026-11-02",
+        "dir": "0002-incident-digest",
+        "url": "https://github.com/nictuck/fernhill-platform/tree/main/intent/0002-incident-digest",
+        "acceptedAt": "2026-11-04T12:00:00.000Z",
+        "spec": {
+          "status": "accepted",
+          "flagged": 0,
+          "url": "https://github.com/nictuck/fernhill-platform/blob/main/intent/0002-incident-digest/spec.md",
+          "acceptedAt": "2026-11-09T12:00:00.000Z"
+        }
+      },
+      {
+        "id": "0003",
+        "title": "Release notes bot",
+        "status": "accepted",
+        "author": "Nicholas Tucker",
+        "origin": "idea",
+        "product": "fernhill-flow",
+        "created": "2026-10-25",
+        "dir": "0003-release-notes-bot",
+        "url": "https://github.com/nictuck/fernhill-platform/tree/main/intent/0003-release-notes-bot",
+        "acceptedAt": "2026-10-27T12:00:00.000Z",
+        "spec": {
+          "status": "accepted",
+          "flagged": 0,
+          "url": "https://github.com/nictuck/fernhill-platform/blob/main/intent/0003-release-notes-bot/spec.md",
+          "acceptedAt": "2026-11-01T12:00:00.000Z"
+        }
+      },
+      {
+        "id": "0004",
+        "title": "Persona editor",
+        "status": "accepted",
+        "author": "Nicholas Tucker",
+        "origin": "idea",
+        "product": "fernhill-flow",
+        "created": "2026-10-26",
+        "dir": "0004-persona-editor",
+        "url": "https://github.com/nictuck/fernhill-platform/tree/main/intent/0004-persona-editor",
+        "acceptedAt": "2026-10-28T12:00:00.000Z",
+        "spec": {
+          "status": "accepted",
+          "flagged": 0,
+          "url": "https://github.com/nictuck/fernhill-platform/blob/main/intent/0004-persona-editor/spec.md",
+          "acceptedAt": "2026-11-02T12:00:00.000Z"
+        }
+      },
+      {
+        "id": "0005",
+        "title": "Status page",
+        "status": "accepted",
+        "author": "Nicholas Tucker",
+        "origin": "idea",
+        "product": "fernhill-flow",
+        "created": "2026-10-20",
+        "dir": "0005-status-page",
+        "url": "https://github.com/nictuck/fernhill-platform/tree/main/intent/0005-status-page",
+        "acceptedAt": "2026-10-23T12:00:00.000Z",
+        "spec": {
+          "status": "accepted",
+          "flagged": 0,
+          "url": "https://github.com/nictuck/fernhill-platform/blob/main/intent/0005-status-page/spec.md",
+          "acceptedAt": "2026-10-29T12:00:00.000Z"
+        }
+      },
+      {
+        "id": "0006",
+        "title": "Onboarding checklist",
+        "status": "accepted",
+        "author": "Nicholas Tucker",
+        "origin": "idea",
+        "product": "fernhill-flow",
+        "created": "2026-10-05",
+        "dir": "0006-onboarding-checklist",
+        "url": "https://github.com/nictuck/fernhill-platform/tree/main/intent/0006-onboarding-checklist",
+        "acceptedAt": "2026-10-07T12:00:00.000Z",
+        "spec": {
+          "status": "accepted",
+          "flagged": 0,
+          "url": "https://github.com/nictuck/fernhill-platform/blob/main/intent/0006-onboarding-checklist/spec.md",
+          "acceptedAt": "2026-10-13T12:00:00.000Z"
+        }
+      },
+      {
+        "id": "0007",
+        "title": "Company front door",
+        "status": "accepted",
+        "author": "Nicholas Tucker",
+        "origin": "idea",
+        "product": "fernhill-platform",
+        "created": "2026-10-01",
+        "dir": "0007-front-door",
+        "url": "https://github.com/nictuck/fernhill-platform/tree/main/intent/0007-front-door",
+        "acceptedAt": "2026-10-03T12:00:00.000Z",
+        "spec": {
+          "status": "accepted",
+          "flagged": 0,
+          "url": "https://github.com/nictuck/fernhill-platform/blob/main/intent/0007-front-door/spec.md",
+          "acceptedAt": "2026-10-08T12:00:00.000Z"
+        }
+      },
+      {
+        "id": "0008",
+        "title": "Weekly digest",
+        "status": "proposed",
+        "author": "Nicholas Tucker",
+        "origin": "idea",
+        "product": "",
+        "created": "2026-11-09",
+        "dir": "0008-weekly-digest",
+        "url": "https://github.com/nictuck/fernhill-platform/pull/12",
+        "prNumber": 12,
+        "prOpenedAt": "2026-11-09T12:00:00.000Z"
+      },
+      {
+        "id": "0009",
+        "title": "Logo refresh",
+        "status": "done",
+        "author": "Nicholas Tucker",
+        "origin": "idea",
+        "product": "fernhill-flow",
+        "created": "2026-09-20",
+        "dir": "0009-logo-refresh",
+        "url": "https://github.com/nictuck/fernhill-platform/tree/main/intent/0009-logo-refresh",
+        "acceptedAt": "2026-09-21T12:00:00.000Z",
+        "statusSetAt": "2026-10-29T12:00:00.000Z",
+        "statusSetBy": "nictuck"
+      },
+      {
+        "id": "0010",
+        "title": "Slack bot",
+        "status": "parked",
+        "author": "Nicholas Tucker",
+        "origin": "idea",
+        "product": "",
+        "created": "2026-09-15",
+        "dir": "0010-slack-bot",
+        "url": "https://github.com/nictuck/fernhill-platform/tree/main/intent/0010-slack-bot",
+        "acceptedAt": "2026-09-16T12:00:00.000Z",
+        "statusSetAt": "2026-10-01T12:00:00.000Z",
+        "statusSetBy": "nictuck"
+      },
+      {
+        "id": "0011",
+        "title": "Mobile app",
+        "status": "rejected",
+        "author": "Nicholas Tucker",
+        "origin": "idea",
+        "product": "",
+        "created": "2026-11-05",
+        "dir": "0011-mobile-app",
+        "url": "https://github.com/nictuck/fernhill-platform/tree/main/intent/0011-mobile-app",
+        "statusSetAt": "2026-11-07T12:00:00.000Z",
+        "statusSetBy": "nictuck"
+      },
+      {
+        "id": "0012",
+        "title": "Brand colours",
+        "status": "done",
+        "author": "Nicholas Tucker",
+        "origin": "idea",
+        "product": "fernhill-platform",
+        "created": "2026-09-01",
+        "dir": "0012-brand-colours",
+        "url": "https://github.com/nictuck/fernhill-platform/tree/main/intent/0012-brand-colours",
+        "acceptedAt": "2026-09-01T12:00:00.000Z",
+        "statusSetAt": "2026-09-26T12:00:00.000Z",
+        "statusSetBy": "nictuck"
+      }
+    ],
+    "exceptions": [
+      {
+        "id": "EX-001",
+        "status": "active",
+        "grants": [
+          "merge"
+        ],
+        "repos": [
+          "fernhill-platform",
+          "fernhill-flow"
+        ],
+        "expires": "2026-11-30",
+        "authorizedBy": "Nicholas Tucker",
+        "url": "https://github.com/nictuck/fernhill-platform/blob/main/exceptions/EX-001-agent-merges-during-platform-build.md",
+        "granted": "2026-10-29T12:00:00.000Z"
+      }
+    ],
+    "incidents": [
+      {
+        "path": "incidents/2026-11-09-blank-board.md",
+        "url": "https://github.com/nictuck/fernhill-platform/blob/main/incidents/2026-11-09-blank-board.md",
+        "product": "fernhill-flow",
+        "severity": "sev2",
+        "status": "open",
+        "intent": "",
+        "opened": "2026-11-10T00:00:00.000Z",
+        "triagedBy": "",
+        "reason": ""
+      },
+      {
+        "path": "incidents/2026-10-20-slow-board.md",
+        "url": "https://github.com/nictuck/fernhill-platform/blob/main/incidents/2026-10-20-slow-board.md",
+        "product": "fernhill-flow",
+        "severity": "sev3",
+        "status": "dismissed",
+        "intent": "",
+        "opened": "2026-10-20T12:00:00.000Z",
+        "triagedBy": "nictuck",
+        "reason": "duplicate of 2026-10-19-slow-board"
+      }
+    ],
+    "personas": [
+      {
+        "id": "compliance",
+        "enabled": true
+      },
+      {
+        "id": "security-lead",
+        "enabled": true
+      },
+      {
+        "id": "tech-lead",
+        "enabled": true
+      },
+      {
+        "id": "ux",
+        "enabled": true
+      }
+    ]
+  },
+  "repos": [
+    {
+      "name": "fernhill-platform",
+      "kind": "platform",
+      "site": "fernhillplatform",
+      "url": "https://github.com/nictuck/fernhill-platform",
+      "mainHead": "784d585000000000000000000000000000000000",
+      "mainCi": "green",
+      "productionHead": "32e1f02000000000000000000000000000000000",
+      "productionBehindMain": {
+        "count": 3,
+        "since": "2026-10-31T12:00:00.000Z"
+      },
+      "staging": {
+        "url": "https://main--fernhillplatform.netlify.app",
+        "version": "784d585000000000000000000000000000000000"
+      },
+      "production": {
+        "url": "https://fernhillplatform.netlify.app",
+        "version": "32e1f02000000000000000000000000000000000"
+      },
+      "prs": [
+        {
+          "number": 1,
+          "url": "https://github.com/nictuck/fernhill-platform/pull/1",
+          "title": "intent 0001: Flow dashboard",
+          "branch": "intent/0001-flow-dashboard",
+          "class": "intent",
+          "intent": "0001",
+          "state": "merged",
+          "sameRepo": true,
+          "author": "nictuck",
+          "createdAt": "2026-11-01T12:00:00.000Z",
+          "updatedAt": "2026-11-02T12:00:00.000Z",
+          "headSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "ci": "green",
+          "mergedAt": "2026-11-02T12:00:00.000Z",
+          "mergedBy": "nictuck",
+          "mergeCommit": "a3f9c1e000000000000000000000000000000000"
+        },
+        {
+          "number": 5,
+          "url": "https://github.com/nictuck/fernhill-platform/pull/5",
+          "title": "spec 0001: Flow dashboard",
+          "branch": "design/0001-flow-dashboard",
+          "class": "spec",
+          "intent": "0001",
+          "state": "open",
+          "sameRepo": true,
+          "author": "nictuck",
+          "createdAt": "2026-11-04T12:00:00.000Z",
+          "updatedAt": "2026-11-05T12:00:00.000Z",
+          "headSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "ci": "green"
+        },
+        {
+          "number": 6,
+          "url": "https://github.com/nictuck/fernhill-platform/pull/6",
+          "title": "spec 0002: Incident digest",
+          "branch": "design/0002-incident-digest",
+          "class": "spec",
+          "intent": "0002",
+          "state": "merged",
+          "sameRepo": true,
+          "author": "nictuck",
+          "createdAt": "2026-11-07T12:00:00.000Z",
+          "updatedAt": "2026-11-09T12:00:00.000Z",
+          "headSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "ci": "green",
+          "mergedAt": "2026-11-09T12:00:00.000Z",
+          "mergedBy": "nictuck",
+          "mergeCommit": "b7c2d9e000000000000000000000000000000000"
+        },
+        {
+          "number": 12,
+          "url": "https://github.com/nictuck/fernhill-platform/pull/12",
+          "title": "intent 0008: Weekly digest",
+          "branch": "intent/0008-weekly-digest",
+          "class": "intent",
+          "intent": "0008",
+          "state": "open",
+          "sameRepo": true,
+          "author": "nictuck",
+          "createdAt": "2026-11-09T12:00:00.000Z",
+          "updatedAt": "2026-11-09T12:00:00.000Z",
+          "headSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "ci": "green"
+        },
+        {
+          "number": 3,
+          "url": "https://github.com/nictuck/fernhill-platform/pull/3",
+          "title": "Front door: landing page",
+          "branch": "build/0007-front-door",
+          "class": "build",
+          "intent": "0007",
+          "state": "merged",
+          "sameRepo": true,
+          "author": "nictuck",
+          "createdAt": "2026-10-11T12:00:00.000Z",
+          "updatedAt": "2026-10-16T12:00:00.000Z",
+          "headSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "ci": "green",
+          "mergedAt": "2026-10-16T12:00:00.000Z",
+          "mergedBy": "nictuck",
+          "mergeCommit": "ffffffffffffffffffffffffffffffffffffffff",
+          "inProduction": true,
+          "servedLive": true
+        }
+      ],
+      "plans": [
+        {
+          "path": "plan/0007-front-door.md",
+          "url": "https://github.com/nictuck/fernhill-platform/blob/main/plan/0007-front-door.md",
+          "intent": "0007",
+          "status": "approved",
+          "approvedBy": "Nicholas Tucker",
+          "createdAt": "2026-10-10T12:00:00.000Z",
+          "onMain": true
+        }
+      ],
+      "releaseRuns": [
+        {
+          "id": 41246873678,
+          "url": "https://github.com/nictuck/fernhill-platform/actions/runs/41246873678",
+          "sha": "ffffffffffffffffffffffffffffffffffffffff",
+          "status": "completed",
+          "pendingApproval": false,
+          "createdAt": "2026-10-16T14:24:00.000Z",
+          "conclusion": "success",
+          "approvedBy": "nictuck",
+          "approvedAt": "2026-10-16T16:48:00.000Z"
+        }
+      ],
+      "buildBranches": []
+    },
+    {
+      "name": "fernhill-flow",
+      "kind": "product",
+      "site": "fernhill-flow",
+      "url": "https://github.com/nictuck/fernhill-flow",
+      "mainHead": "a1b2c3d000000000000000000000000000000000",
+      "mainCi": "green",
+      "productionHead": "a1b2c3d000000000000000000000000000000000",
+      "productionBehindMain": {
+        "count": 0
+      },
+      "staging": {
+        "url": "https://main--fernhill-flow.netlify.app",
+        "version": "a1b2c3d000000000000000000000000000000000"
+      },
+      "production": {
+        "url": "https://fernhill-flow.netlify.app",
+        "version": "a1b2c3d000000000000000000000000000000000"
+      },
+      "prs": [
+        {
+          "number": 14,
+          "url": "https://github.com/nictuck/fernhill-flow/pull/14",
+          "title": "Release notes bot v1",
+          "branch": "build/0003-release-notes-bot",
+          "class": "build",
+          "intent": "0003",
+          "state": "open",
+          "sameRepo": true,
+          "author": "nictuck",
+          "createdAt": "2026-11-09T12:00:00.000Z",
+          "updatedAt": "2026-11-09T16:48:00.000Z",
+          "headSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "ci": "green"
+        },
+        {
+          "number": 9,
+          "url": "https://github.com/nictuck/fernhill-flow/pull/9",
+          "title": "Persona editor v1",
+          "branch": "build/0004-persona-editor",
+          "class": "build",
+          "intent": "0004",
+          "state": "open",
+          "sameRepo": true,
+          "author": "nictuck",
+          "createdAt": "2026-11-08T00:00:00.000Z",
+          "updatedAt": "2026-11-08T12:00:00.000Z",
+          "headSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "ci": "red",
+          "ciUrl": "https://github.com/nictuck/fernhill-flow/actions/runs/41300001/job/1"
+        },
+        {
+          "number": 11,
+          "url": "https://github.com/nictuck/fernhill-flow/pull/11",
+          "title": "Status page v1",
+          "branch": "build/0005-status-page",
+          "class": "build",
+          "intent": "0005",
+          "state": "merged",
+          "sameRepo": true,
+          "author": "nictuck",
+          "createdAt": "2026-11-07T12:00:00.000Z",
+          "updatedAt": "2026-11-10T00:00:00.000Z",
+          "headSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "ci": "green",
+          "mergedAt": "2026-11-10T00:00:00.000Z",
+          "mergedBy": "nictuck",
+          "mergeCommit": "dddddddddddddddddddddddddddddddddddddddd",
+          "inProduction": false
+        },
+        {
+          "number": 7,
+          "url": "https://github.com/nictuck/fernhill-flow/pull/7",
+          "title": "Onboarding checklist v1",
+          "branch": "build/0006-onboarding-checklist",
+          "class": "build",
+          "intent": "0006",
+          "state": "merged",
+          "sameRepo": true,
+          "author": "nictuck",
+          "createdAt": "2026-10-19T12:00:00.000Z",
+          "updatedAt": "2026-10-21T12:00:00.000Z",
+          "headSha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "ci": "green",
+          "mergedAt": "2026-10-21T12:00:00.000Z",
+          "mergedBy": "nictuck",
+          "mergeCommit": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "inProduction": true,
+          "servedLive": true
+        }
+      ],
+      "plans": [
+        {
+          "path": "plan/0003-release-notes-bot.md",
+          "url": "https://github.com/nictuck/fernhill-flow/blob/main/plan/0003-release-notes-bot.md",
+          "intent": "0003",
+          "status": "approved",
+          "approvedBy": "Nicholas Tucker",
+          "createdAt": "2026-11-03T12:00:00.000Z",
+          "onMain": true
+        },
+        {
+          "path": "plan/0004-persona-editor.md",
+          "url": "https://github.com/nictuck/fernhill-flow/blob/main/plan/0004-persona-editor.md",
+          "intent": "0004",
+          "status": "approved",
+          "approvedBy": "Nicholas Tucker",
+          "createdAt": "2026-11-04T12:00:00.000Z",
+          "onMain": true
+        },
+        {
+          "path": "plan/0005-status-page.md",
+          "url": "https://github.com/nictuck/fernhill-flow/blob/main/plan/0005-status-page.md",
+          "intent": "0005",
+          "status": "approved",
+          "approvedBy": "Nicholas Tucker",
+          "createdAt": "2026-10-31T12:00:00.000Z",
+          "onMain": true
+        },
+        {
+          "path": "plan/0006-onboarding-checklist.md",
+          "url": "https://github.com/nictuck/fernhill-flow/blob/main/plan/0006-onboarding-checklist.md",
+          "intent": "0006",
+          "status": "approved",
+          "approvedBy": "Nicholas Tucker",
+          "createdAt": "2026-10-15T12:00:00.000Z",
+          "onMain": true
+        }
+      ],
+      "releaseRuns": [
+        {
+          "id": 41301,
+          "url": "https://github.com/nictuck/fernhill-flow/actions/runs/41301",
+          "sha": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "status": "completed",
+          "pendingApproval": false,
+          "createdAt": "2026-10-21T14:24:00.000Z",
+          "conclusion": "success",
+          "approvedBy": "nictuck",
+          "approvedAt": "2026-10-21T16:48:00.000Z"
+        },
+        {
+          "id": 41355,
+          "url": "https://github.com/nictuck/fernhill-flow/actions/runs/41355",
+          "sha": "dddddddddddddddddddddddddddddddddddddddd",
+          "status": "waiting",
+          "pendingApproval": true,
+          "createdAt": "2026-11-10T02:24:00.000Z"
+        }
+      ],
+      "buildBranches": [
+        {
+          "name": "build/0003-release-notes-bot",
+          "intent": "0003",
+          "lastCommitAt": "2026-11-09T16:48:00.000Z"
+        },
+        {
+          "name": "build/0004-persona-editor",
+          "intent": "0004",
+          "lastCommitAt": "2026-11-08T12:00:00.000Z"
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "calls": 42,
+    "durationMs": 3800,
+    "rateLimitRemaining": 4910
+  },
+  "warnings": []
+}
