@@ -203,7 +203,39 @@ describe("R9 fixture and populated", () => {
     const detail = text(section.querySelector(".stage-detail"));
     expect(detail).toMatch(/^2 intents( · median \d+(\.\d+)? d · max \d+ d · n=\d+)? · 1 stuck/);
     expect(detail).not.toContain("n/a");
-    expect(detail).toContain("0004 Persona editor · 2 days in stage · stuck");
+    expect(detail).toContain("0004 Persona editor · 2 days in stage · stuck, limit 1");
+    expect(section.querySelector("button")).toHaveAttribute("aria-controls", "stage-test-detail");
+    expect(document.getElementById("stage-test-detail")).not.toBeNull();
+  });
+
+  test("Done toggle reads Show/Hide, reveals cards only, and sets no aria-controls", () => {
+    renderAt("/", makeFlow({ snapshot: populatedSnapshot() }));
+    const done = document.querySelector(".stage-col.done")!;
+    const btn = done.querySelector("button")!;
+    expect(btn).toHaveTextContent("Show");
+    expect(btn).toHaveAttribute("aria-expanded", "false");
+    expect(btn).not.toHaveAttribute("aria-controls");
+    renderAt("/?stage=done", makeFlow({ snapshot: populatedSnapshot() }));
+    const open = document.querySelector(".stage-col.done.is-open")!;
+    expect(open.querySelector("button")).toHaveTextContent("Hide");
+    expect(open.querySelector(".stage-detail")).toBeNull();
+    expect(open.querySelectorAll(".card").length).toBe(1);
+  });
+
+  test("intent header: one state string, stage after it; pending timeline entries say so in text", () => {
+    renderAt("/intent/0001", makeFlow({ snapshot: populatedSnapshot() }));
+    const row = document.querySelector(".intent-head .state-row")!;
+    const parts = Array.from(row.querySelector(".state")!.children).map((c) => text(c));
+    expect(parts).toHaveLength(3);
+    expect(parts[0]).toBe("Waiting on product owner");
+    expect(parts[1]).toMatch(/^for \d+ days?$/);
+    expect(parts[2]).toBe("stuck, limit 3");
+    expect(row.lastElementChild).toHaveClass("stage");
+    expect(row.lastElementChild).toHaveTextContent("Design");
+    const timeline = screen.getByRole("list", { name: "Timeline" });
+    const pendingTicks = timeline.querySelectorAll(".tick.pending");
+    expect(pendingTicks.length).toBeGreaterThan(0);
+    for (const tick of pendingTicks) expect(text(tick.parentElement)).toContain("· pending");
   });
 
   test("stage detail shows no statistics under five measured durations", () => {
@@ -214,6 +246,11 @@ describe("R9 fixture and populated", () => {
     expect(detail).toMatch(/^1 intent · 1 stuck/);
     expect(detail).not.toContain("median");
     expect(detail).toContain("0001 Flow dashboard · 8 days in stage · stuck");
+  });
+
+  test("systems evaluates active exceptions at now, like the Board", () => {
+    renderAt("/systems", makeFlow({ snapshot: populatedSnapshot(), now: "2026-12-05T12:00:00.000Z" }));
+    expect(document.querySelector(".banner.exception")).toBeNull();
   });
 
   test("systems populated: both repos, status lines with text, release badge, CI badge", () => {

@@ -8,8 +8,23 @@ import { ageMinutes, daysBetween, fmtDate, fmtDays, isStale, needsRefresh, plura
 import { NOW, daysAgo, makeIncident, makeIntent } from "../helpers/build.ts";
 import { scenario } from "./scenarios.ts";
 
+/** A Derived whose wait began with the stage unless `waitStart`/`waitDays` say otherwise. */
 function mk(over: Partial<Derived>): Derived {
-  return { intent: makeIntent(), stage: "plan", state: "waiting", clockStart: NOW, days: 0, stuck: false, onBoard: true, notes: [], ...over };
+  const clockStart = over.clockStart ?? NOW;
+  const days = over.days ?? 0;
+  return {
+    intent: makeIntent(),
+    stage: "plan",
+    state: "waiting",
+    clockStart,
+    days,
+    waitStart: clockStart,
+    waitDays: days,
+    stuck: false,
+    onBoard: true,
+    notes: [],
+    ...over,
+  };
 }
 
 describe("stateLine", () => {
@@ -74,12 +89,32 @@ describe("stateLine", () => {
     }
   });
 
+  test("the waiting phrase counts the wait (waitDays); progress, live and done count the stage clock", () => {
+    expect(stateLine(mk({ state: "waiting", waitingOn: "on-call", days: 11, waitDays: 0, limit: 1 }), NOW)).toBe("Waiting on on-call for 0 days");
+    expect(stateLine(mk({ state: "waiting", waitingOn: "code owner", days: 5, waitDays: 1, limit: 2 }), NOW)).toBe("Waiting on code owner for 1 day");
+    expect(stateLine(mk({ state: "progress", days: 8, waitDays: 2 }), NOW)).toBe("In progress · 8 days");
+    expect(stateLine(mk({ state: "done", stage: "done", days: 8, waitDays: 2 }), NOW)).toBe(`Done ${fmtDate(NOW, NOW)} · 8 days on board`);
+  });
+
   test("end to end from derived rows", () => {
     expect(stateLine(derive(scenario.designNoSpec(6), NOW)[0]!, NOW)).toBe("Waiting on product owner for 6 days · stuck, limit 5");
     expect(stateLine(derive(scenario.testPr("running", 0.5), NOW)[0]!, NOW)).toBe("In progress · 2 days");
     expect(stateLine(derive(scenario.maintain([], 20), NOW)[0]!, NOW)).toBe(`Live since ${fmtDate(daysAgo(20), NOW)} · no open incidents`);
-    expect(stateLine(derive(scenario.maintain([makeIncident({ opened: daysAgo(2) })], 20), NOW)[0]!, NOW)).toBe("Waiting on on-call for 20 days · stuck, limit 1");
     expect(stateLine(derive(scenario.done(18), NOW)[0]!, NOW)).toBe(`Done ${fmtDate(daysAgo(18), NOW)} · 18 days on board`);
+  });
+
+  test("Maintain with an incident opened half a day ago on an intent live for 11 days → \"for 0 days\", not stuck", () => {
+    const d = derive(scenario.maintain([makeIncident({ opened: daysAgo(0.5) })], 11), NOW)[0]!;
+    expect(d.days).toBe(11);
+    expect(stateLine(d, NOW)).toBe("Waiting on on-call for 0 days");
+    const stuck = derive(scenario.maintain([makeIncident({ opened: daysAgo(2) })], 20), NOW)[0]!;
+    expect(stateLine(stuck, NOW)).toBe("Waiting on on-call for 2 days · stuck, limit 1");
+  });
+
+  test("Test review pending, PR created 5 days ago and last pushed 1 day ago → \"for 1 day\", not stuck at limit 2", () => {
+    const d = derive(scenario.testPr("green", 1, { createdAt: daysAgo(5) }), NOW)[0]!;
+    expect(d.days).toBe(5);
+    expect(stateLine(d, NOW)).toBe("Waiting on code owner for 1 day");
   });
 });
 

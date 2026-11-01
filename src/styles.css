@@ -160,13 +160,16 @@ button { font: inherit; }
 /* ---- systems / archive ---- */
 .systems, .archive { display: grid; gap: 16px; }
 .systems table, .archive table { width: 100%; border-collapse: collapse; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); font-size: 14px; }
-.systems th, .systems td, .archive th, .archive td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; overflow-wrap: anywhere; }
+.systems th, .systems td, .archive th, .archive td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; overflow-wrap: break-word; }
+.systems td:first-child, .systems td:nth-child(2), .systems td:nth-child(3) { white-space: nowrap; }
+.systems th:nth-child(5) { min-width: 14em; }
 .systems th, .archive th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
 .systems tr:last-child td, .archive tr:last-child td { border-bottom: 0; }
 .systems .cards { display: none; gap: 10px; }
-.systems .sys-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; display: grid; gap: 6px; font-size: 14px; overflow-wrap: anywhere; min-width: 0; }
+.systems .sys-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; display: grid; gap: 6px; font-size: 14px; overflow-wrap: break-word; min-width: 0; }
 .systems .sys-card .row2 { display: grid; grid-template-columns: 80px 1fr; gap: 8px; }
-.sha { font-family: ui-monospace, Menlo, monospace; font-size: 13px; }
+.sha { font-family: ui-monospace, Menlo, monospace; font-size: 13px; overflow-wrap: anywhere; }
+.systems .sys-card a, .systems .sys-card .sha { overflow-wrap: anywhere; }
 .line-ok { color: var(--live-fg); }
 .line-behind { color: var(--warn-fg); }
 .line-rollback { color: var(--stuck-fg); font-weight: 600; }
@@ -176,6 +179,8 @@ button { font: inherit; }
 
 /* ---- intent detail / timeline ---- */
 .intent-head { display: grid; gap: 6px; }
+.intent-head .state-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.intent-head .state-row .state { display: contents; }
 .intent-head h1 { font-size: 20px; margin: 0; overflow-wrap: anywhere; }
 .intent-head .analysis { margin: 0; font-size: 14px; color: var(--muted); }
 .intent-head .label { margin: 0; }
@@ -212,4 +217,6 @@ button { font: inherit; }
 }
 @media (min-width: 601px) {
   .systems .cards { display: none; }
+  /* Done cards are always visible on wide screens; the Show/Hide toggle is a phone control */
+  .stage-col.done > header button { display: none; }
 }

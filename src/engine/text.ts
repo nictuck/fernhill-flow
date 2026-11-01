@@ -46,7 +46,9 @@ export function stateParts(d: Derived, now: string): StateParts {
   const withStuck = (parts: StateParts): StateParts => (stuck === undefined ? parts : { ...parts, stuck });
   switch (d.state) {
     case "waiting":
-      return withStuck({ badge: `Waiting on ${d.waitingOn ?? "someone"}`, rest: `for ${fmtDays(d.days)}` });
+      // The wait is counted from what the threshold measures (waitDays), not the stage clock,
+      // so "for N days" and "limit L" are the same number stuck compares.
+      return withStuck({ badge: `Waiting on ${d.waitingOn ?? "someone"}`, rest: `for ${fmtDays(d.waitDays)}` });
     case "progress":
       return withStuck({ badge: "In progress", rest: `· ${fmtDays(d.days)}` });
     case "live":

@@ -1,19 +1,19 @@
 // The card (spec → "The card"): id · title · [stage] · state line · action.
 
-import type { ReactNode } from "react";
 import type { Derived } from "../engine/types.ts";
-import { stageLabel, stateParts } from "../engine/index.ts";
+import { stateParts } from "../engine/index.ts";
 import { Link } from "../router.ts";
 import { ActionLine } from "./ActionLine.tsx";
 import { Badge } from "./Badge.tsx";
 import type { BadgeKind } from "./Badge.tsx";
+import { bareStage } from "./format.ts";
 
-export function StateLine({ d, now, children }: { d: Derived; now: string; children?: ReactNode }) {
+/** badge · rest · [CI red] · [stuck] — one string everywhere it appears. */
+export function StateLine({ d, now }: { d: Derived; now: string }) {
   const parts = stateParts(d, now);
   return (
     <div className="state">
       <Badge kind={d.state as BadgeKind}>{parts.badge}</Badge>
-      {children}
       <span className="rest">{parts.rest}</span>
       {d.ci === "red" && <Badge kind="ci-red">CI red</Badge>}
       {parts.stuck && <Badge kind="stuck">{parts.stuck}</Badge>}
@@ -30,7 +30,7 @@ export function Card({ d, now, showStage = false }: { d: Derived; now: string; s
         <span className="title" id={`card-${intent.id}-title`}>
           <Link href={`/intent/${intent.id}`}>{intent.title}</Link>
         </span>
-        {showStage && <span className="stage">{stageLabel(d.stage)}</span>}
+        {showStage && <span className="stage">{bareStage(d.stage)}</span>}
       </div>
       <StateLine d={d} now={now} />
       {d.action && d.state !== "done" && (

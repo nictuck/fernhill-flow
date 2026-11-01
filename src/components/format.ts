@@ -44,10 +44,6 @@ export function siteName(url: string): string {
   }
 }
 
-export function plural(n: number, word: string, pluralWord = `${word}s`): string {
-  return `${n} ${n === 1 ? word : pluralWord}`;
-}
-
 /** "Design" from the engine's "2 Design" heading label. */
 export function bareStage(stage: Stage): string {
   return stageLabel(stage).replace(/^\d+ /, "");

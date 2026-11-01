@@ -83,6 +83,19 @@ export function releaseRunFor(repo: RepoSnapshot, pr: Pr): ReleaseRun | undefine
   return newestRun(repo.releaseRuns);
 }
 
+/**
+ * When the merge commit reached production: the successful release run whose
+ * sha is the merge commit (approval time, else the run's start). Undefined
+ * when no such run is in the snapshot — callers fall back to the merge.
+ */
+export function deploymentTime(repo: RepoSnapshot, pr: Pr): string | undefined {
+  if (!pr.mergeCommit) return undefined;
+  const run = newestRun(
+    repo.releaseRuns.filter((r) => r.sha === pr.mergeCommit && r.status === "completed" && r.conclusion === "success"),
+  );
+  return run ? (run.approvedAt ?? run.createdAt) : undefined;
+}
+
 /** The plan that counts for an intent: an approved one, else the newest non-superseded one. */
 export function planFor(repo: RepoSnapshot, intentId: string): Plan | undefined {
   const plans = repo.plans.filter((p) => p.intent === intentId && p.status !== "superseded");
@@ -146,6 +159,8 @@ interface Row {
   stage: Stage;
   state: StateKind;
   clockStart: string;
+  /** what the stuck threshold is measured from; defaults to clockStart */
+  waitStart?: string;
   waitingOn?: Role;
   action?: Action;
   stuck?: boolean;
@@ -156,12 +171,15 @@ interface Row {
 }
 
 function row(intent: Intent, repo: RepoSnapshot | undefined, now: string, r: Row): Derived {
+  const waitStart = r.waitStart ?? r.clockStart;
   const d: Derived = {
     intent,
     stage: r.stage,
     state: r.state,
     clockStart: r.clockStart,
     days: daysBetween(r.clockStart, now),
+    waitStart,
+    waitDays: daysBetween(waitStart, now),
     stuck: r.stuck ?? false,
     onBoard: r.onBoard ?? true,
     notes: r.notes ?? [],
@@ -194,10 +212,10 @@ function deriveIntent(intent: Intent, snapshot: Snapshot, now: string): Derived 
   const repo = linkedRepo(snapshot, intent);
   const pr = latestBuildPr(repo, intent.id);
 
-  /** Stuck check: `days since from` strictly greater than the threshold; at the limit is not stuck. */
-  const check = (key: ThresholdKey, from: string): Pick<Row, "stuck" | "threshold"> => {
+  /** Stuck check: the wait starts at `from`, and stuck is `waitDays > limit` (at the limit is not stuck). */
+  const check = (key: ThresholdKey, from: string): Pick<Row, "waitStart" | "stuck" | "threshold"> => {
     const limit = thresholds[key];
-    return { stuck: daysBetween(from, now) > limit, threshold: { key, limit } };
+    return { waitStart: from, stuck: daysBetween(from, now) > limit, threshold: { key, limit } };
   };
 
   // Done: status done stays on the board for board.done_days; parked and
@@ -214,9 +232,11 @@ function deriveIntent(intent: Intent, snapshot: Snapshot, now: string): Derived 
     });
   }
 
-  // Maintain: merge commit in production and served live.
+  // Maintain: merge commit in production and served live. The clock is the
+  // production deployment (flow.md row 6): the successful release run for the
+  // merge commit, approved time first; the merge only when no run is known.
   if (repo && pr && pr.state === "merged" && pr.inProduction === true && pr.servedLive === true) {
-    const clockStart = pr.mergedAt ?? pr.updatedAt;
+    const clockStart = deploymentTime(repo, pr) ?? pr.mergedAt ?? pr.updatedAt;
     const open = openIncidents(snapshot, repo.name);
     const triaged = snapshot.platform.incidents.filter(
       (i) => i.product === repo.name && (i.status === "fix-now" || i.status === "scheduled"),

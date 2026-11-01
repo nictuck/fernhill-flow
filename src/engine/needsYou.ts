@@ -22,7 +22,9 @@ export function needsYou(rows: Derived[], snapshot: Snapshot, now: string): Need
     // Incidents attach to the product: the incident rows carry a Maintain
     // intent's wait on on-call, so the intent is not listed twice.
     if (d.stage === "maintain" && d.waitingOn === "on-call") continue;
-    const item: NeedsYouItem = { kind: "intent", derived: d, days: d.days, stuck: d.stuck };
+    // Days here are the wait (what the threshold measures), the same number the card's
+    // "Waiting on ‹role› for N days" shows — not time in stage.
+    const item: NeedsYouItem = { kind: "intent", derived: d, days: d.waitDays, stuck: d.stuck };
     if (d.limit !== undefined) item.limit = d.limit;
     if (d.action !== undefined) item.action = d.action;
     items.push({ role: d.waitingOn, item });

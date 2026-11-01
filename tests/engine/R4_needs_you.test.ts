@@ -68,7 +68,9 @@ test("within a group: stuck first, then the most days", () => {
 test("intent rows carry the derived action and limit", () => {
   const ny = needsYou(derive(busy, NOW), busy, NOW);
   const row = ny.groups.find((g) => g.role === "code owner")!.rows[0]!;
-  expect(row).toMatchObject({ kind: "intent", stuck: false, limit: 2, days: 2 });
+  // days is the wait (since the last push, 1 day), the same number the card shows — not time in stage (2)
+  expect(row).toMatchObject({ kind: "intent", stuck: false, limit: 2, days: 1 });
+  expect(row.kind === "intent" && row.derived.days).toBe(2);
   expect(row.action).toEqual({ text: "Review and merge PR #5", href: `${GH}/fernhill-flow/pull/5` });
 });
 

@@ -2,11 +2,11 @@
 // Table at ≥ 601 px, one card per repo at ≤ 600 px; CSS picks one.
 
 import type { ReleaseRun, Snapshot, SystemsRow } from "../engine/types.ts";
-import { systems } from "../engine/index.ts";
+import { plural, systems } from "../engine/index.ts";
 import { Badge } from "../components/Badge.tsx";
 import { Exceptions } from "../components/Exceptions.tsx";
 import { ExtLink } from "../components/ExtLink.tsx";
-import { plural, shortSha, siteName } from "../components/format.ts";
+import { shortSha, siteName } from "../components/format.ts";
 import { Link } from "../router.ts";
 
 function ReleaseBadge({ run }: { run: ReleaseRun }) {
@@ -55,7 +55,7 @@ function OpenCounts({ row, snapshot }: { row: SystemsRow; snapshot: Snapshot }) 
   );
 }
 
-export function Systems({ snapshot }: { snapshot: Snapshot; now: string }) {
+export function Systems({ snapshot, now }: { snapshot: Snapshot; now: string }) {
   const rows = systems(snapshot);
   const productRepos = snapshot.config.repos.filter((r) => r.kind === "product");
   return (
@@ -194,7 +194,7 @@ export function Systems({ snapshot }: { snapshot: Snapshot; now: string }) {
           ))}
         </ul>
       )}
-      <Exceptions snapshot={snapshot} now={snapshot.collectedAt} />
+      <Exceptions snapshot={snapshot} now={now} />
     </div>
   );
 }

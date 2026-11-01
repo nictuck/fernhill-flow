@@ -1,12 +1,13 @@
 // One stage section (R1, R6): header with count and stuck count, a Details
 // toggle that opens the in-place detail block (URL `?stage=`), the cards,
-// and for Done the "N older → Archive" footer.
+// and for Done the "N older → Archive" footer. Done has no detail block:
+// its toggle (Show/Hide, phones only) reveals the cards.
 
 import type { Derived, Snapshot, Stage as StageId } from "../engine/types.ts";
-import { stageDetail, stageLabel } from "../engine/index.ts";
+import { plural, stageDetail, stageLabel, stateParts } from "../engine/index.ts";
 import { Link, navigate } from "../router.ts";
 import { Card } from "./Card.tsx";
-import { bareStage, plural } from "./format.ts";
+import { bareStage } from "./format.ts";
 
 export interface StageProps {
   stage: StageId;
@@ -25,13 +26,15 @@ export function StageSection({ stage, rows, stuckCount, allRows, snapshot, now, 
   const empty = rows.length === 0;
   const detailId = `stage-${stage}-detail`;
   const headingId = `stage-${stage}-h`;
-  const detail = open ? stageDetail(stage, allRows, snapshot, now) : null;
+  const detail = open && !isDone ? stageDetail(stage, allRows, snapshot, now) : null;
 
   const cls = ["stage-col", empty ? "is-empty" : "", isDone ? "done" : "", open ? "is-open" : ""].filter(Boolean).join(" ");
 
   function toggle() {
     navigate(open ? "/" : `/?stage=${stage}`, { replace: true });
   }
+
+  const label = isDone ? (open ? "Hide" : "Show") : open ? "Hide" : "Details";
 
   return (
     <section className={cls} aria-labelledby={headingId}>
@@ -40,8 +43,8 @@ export function StageSection({ stage, rows, stuckCount, allRows, snapshot, now, 
         <span className="count">{rows.length}</span>
         {stuckCount > 0 && <span className="stuck-count">{stuckCount} stuck</span>}
         {!empty && (
-          <button type="button" aria-expanded={open} aria-controls={detailId} onClick={toggle}>
-            {open ? "Hide" : "Details"}
+          <button type="button" aria-expanded={open} onClick={toggle} {...(detail ? { "aria-controls": detailId } : {})}>
+            {label}
           </button>
         )}
       </header>
@@ -58,13 +61,15 @@ export function StageSection({ stage, rows, stuckCount, allRows, snapshot, now, 
             {detail.stuckCount} stuck
           </div>
           <ul>
-            {rows.map((d) => (
-              <li key={d.intent.id}>
-                {d.intent.id} {d.intent.title} · {plural(d.days, "day")}
-                {isDone ? " on board" : " in stage"}
-                {d.stuck ? " · stuck" : ""}
-              </li>
-            ))}
+            {rows.map((d) => {
+              const stuck = stateParts(d, now).stuck;
+              return (
+                <li key={d.intent.id}>
+                  {d.intent.id} {d.intent.title} · {plural(d.days, "day")} in stage
+                  {stuck ? ` · ${stuck}` : ""}
+                </li>
+              );
+            })}
           </ul>
         </div>
       )}

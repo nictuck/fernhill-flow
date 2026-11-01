@@ -1,9 +1,8 @@
 // Active exceptions (R7): one muted strip each, on the Board and on Systems.
 
 import type { Snapshot } from "../engine/types.ts";
-import { fmtDate } from "../engine/index.ts";
+import { fmtDate, plural } from "../engine/index.ts";
 import { ExtLink } from "./ExtLink.tsx";
-import { plural } from "./format.ts";
 
 export function activeExceptions(snapshot: Snapshot, now: string) {
   const today = now.slice(0, 10);

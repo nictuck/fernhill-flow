@@ -232,8 +232,15 @@ export interface Derived {
   action?: Action;
   /** ISO time the stage clock started */
   clockStart: string;
-  /** whole days since clockStart at `now` */
+  /** whole days since clockStart at `now` (time in stage) */
   days: number;
+  /** ISO time the current wait began — exactly what the stuck threshold is measured
+   *  from (oldest open incident `opened`, `pr.updatedAt`, `run.createdAt`,
+   *  `plan.createdAt`); equals clockStart when the wait began with the stage */
+  waitStart: string;
+  /** whole days since waitStart at `now`; "Waiting on ‹role› for N days" shows this,
+   *  and `stuck` is exactly `waitDays > limit` */
+  waitDays: number;
   stuck: boolean;
   /** the threshold that applies in this state, when there is one */
   limit?: number;

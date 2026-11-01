@@ -8,8 +8,8 @@ import { ActionLine } from "../components/ActionLine.tsx";
 import { Badge } from "../components/Badge.tsx";
 import { StateLine } from "../components/Card.tsx";
 import { ExtLink } from "../components/ExtLink.tsx";
-import { fmtDate } from "../engine/index.ts";
-import { bareStage, hhmm, plural } from "../components/format.ts";
+import { fmtDate, plural } from "../engine/index.ts";
+import { bareStage, hhmm } from "../components/format.ts";
 import { Link } from "../router.ts";
 
 function when(at: string, now: string): string {
@@ -17,8 +17,14 @@ function when(at: string, now: string): string {
   return `${fmtDate(at, now)} ${hhmm(at)}`;
 }
 
+/** Still waiting on someone: an open PR, a run awaiting approval, an untriaged incident. Marked in text, not only by the tick's colour. */
+function isPending(e: TimelineEntry): boolean {
+  if (/merged|accepted|resolved|dismissed|closed|success|deployed|failed/.test(e.text)) return false;
+  return /\b(opened|waiting|open|proposed)\b/.test(e.text);
+}
+
 function Entry({ e, now }: { e: TimelineEntry; now: string }) {
-  const pending = /\b(opened|waiting|open\b|proposed)/.test(e.text) && !/merged|accepted|resolved|dismissed/.test(e.text);
+  const pending = isPending(e);
   return (
     <li>
       <span className="when">{when(e.at, now)}</span>
@@ -32,6 +38,7 @@ function Entry({ e, now }: { e: TimelineEntry; now: string }) {
               <Badge kind="ci-red">CI red</Badge>
             </>
           )}
+          {pending && <span className="label"> · pending</span>}
         </span>
         {e.who && <span className="who">{e.who}</span>}
         {e.exception && <span className="exc">under {e.exception}</span>}
@@ -80,9 +87,10 @@ export function IntentScreen({ id, snapshot, derived, now }: { id: string; snaps
         <span className="id">{intent.id}</span>
         <h1>{intent.title}</h1>
         {d && (
-          <StateLine d={d} now={now}>
+          <div className="state-row">
+            <StateLine d={d} now={now} />
             <span className="stage">{bareStage(d.stage)}</span>
-          </StateLine>
+          </div>
         )}
         {d?.action && d.state !== "done" && (
           <div className="action">

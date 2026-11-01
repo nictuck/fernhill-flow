@@ -45,13 +45,46 @@ describe("Done", () => {
 });
 
 describe("6 Maintain", () => {
-  test("merged, in production and served, no incident → Live since the merge", () => {
+  test("merged, in production and served, no incident → Live; with no release run known the clock is the merge", () => {
     const d = one(scenario.maintain([], 20));
     expect(d).toMatchObject({ stage: "maintain", state: "live", days: 20, stuck: false, onBoard: true });
     expect(d.clockStart).toBe(daysAgo(20));
+    expect(d.waitStart).toBe(d.clockStart);
     expect(d.notes).toEqual(["no open incidents"]);
     expect(d.action).toBeUndefined();
     expect(d.repo?.name).toBe(PRODUCT);
+  });
+
+  test("the clock is the production deployment: the run approved two days after the merge", () => {
+    const snap = snapshotWith({
+      intents: [linkedIntent()],
+      repos: [
+        productRepo({
+          prs: [mergedPr({ mergedAt: daysAgo(20), updatedAt: daysAgo(20), inProduction: true, servedLive: true })],
+          releaseRuns: [
+            runFor({ id: 100, status: "completed", conclusion: "success", pendingApproval: false, createdAt: daysAgo(19), approvedBy: "nictuck", approvedAt: daysAgo(18) }),
+            // an unrelated later run must not move the clock
+            runFor({ id: 101, sha: "f".repeat(40), status: "completed", conclusion: "success", pendingApproval: false, createdAt: daysAgo(2), approvedAt: daysAgo(1) }),
+          ],
+        }),
+      ],
+    });
+    const d = one(snap);
+    expect(d).toMatchObject({ stage: "maintain", state: "live", days: 18 });
+    expect(d.clockStart).toBe(daysAgo(18));
+  });
+
+  test("a failed or unapproved run for the merge commit does not set the Live clock", () => {
+    const snap = snapshotWith({
+      intents: [linkedIntent()],
+      repos: [
+        productRepo({
+          prs: [mergedPr({ mergedAt: daysAgo(20), updatedAt: daysAgo(20), inProduction: true, servedLive: true })],
+          releaseRuns: [runFor({ status: "completed", conclusion: "failure", pendingApproval: false, createdAt: daysAgo(19) })],
+        }),
+      ],
+    });
+    expect(one(snap).clockStart).toBe(daysAgo(20));
   });
 
   test("triaged incidents keep it Live and are counted", () => {
@@ -76,13 +109,21 @@ describe("6 Maintain", () => {
     expect(d.notes).toEqual(["1 open incident"]);
   });
 
-  test("the oldest open incident drives the action and the stuck check", () => {
+  test("the oldest open incident drives the action, the wait and the stuck check", () => {
     const old = makeIncident({ path: "incidents/2026-11-07-oldest.md", opened: daysAgo(3) });
     const recent = makeIncident({ opened: daysAgo(0.1) });
     const d = one(scenario.maintain([recent, old]));
     expect(d.action?.text).toBe("Triage incident oldest");
     expect(d.stuck).toBe(true);
-    expect(d.days).toBe(20);
+    expect(d.days).toBe(20); // time in stage: the production merge
+    expect(d.waitStart).toBe(old.opened); // the wait: the oldest open incident
+    expect(d.waitDays).toBe(3);
+  });
+
+  test("an incident opened half a day ago on an intent live for 11 days: waiting 0 days, not 11, not stuck", () => {
+    const d = one(scenario.maintain([makeIncident({ opened: daysAgo(0.5) })], 11));
+    expect(d).toMatchObject({ state: "waiting", waitingOn: "on-call", days: 11, waitDays: 0, stuck: false, limit: 1 });
+    expect(d.waitStart).toBe(daysAgo(0.5));
   });
 
   test("an open incident on another product does not touch this intent", () => {
@@ -116,6 +157,9 @@ describe("5 Deploy", () => {
       thresholdKey: "deploy.approval_pending_days",
     });
     expect(d.action).toEqual({ text: "Approve production for run #100", href: `${GH}/fernhill-flow/actions/runs/100` });
+    expect(d.days).toBe(2); // in Deploy since the merge
+    expect(d.waitStart).toBe(daysAgo(0.5)); // waiting since the run asked for approval
+    expect(d.waitDays).toBe(0);
   });
 
   test("failed release run → waiting on release manager, stuck with no timer", () => {
@@ -183,6 +227,15 @@ describe("4 Test", () => {
     expect(one(scenario.testPr("none")).waitingOn).toBe("code owner");
   });
 
+  test("the wait is measured from the last push, not the PR opening: 5 days in Test, waiting 1 day, not stuck at limit 2", () => {
+    const d = one(scenario.testPr("green", 1, { createdAt: daysAgo(5) }));
+    expect(d).toMatchObject({ stage: "test", state: "waiting", waitingOn: "code owner", days: 5, waitDays: 1, stuck: false, limit: 2 });
+    expect(d.clockStart).toBe(daysAgo(5));
+    expect(d.waitStart).toBe(daysAgo(1));
+    const red = one(scenario.testPr("red", 0.5, { createdAt: daysAgo(5) }));
+    expect(red).toMatchObject({ days: 5, waitDays: 0, stuck: false });
+  });
+
   test("the highest-numbered build PR is the unit; earlier merged PRs do not hide it", () => {
     const earlier = mergedPr({ number: 3, inProduction: true, servedLive: true });
     const later = makePr({ number: 8, ci: "red" });
@@ -232,7 +285,9 @@ describe("3 Build", () => {
     const d = one(scenario.buildProposedPlan(1));
     expect(d).toMatchObject({ stage: "build", state: "waiting", waitingOn: "engineer", limit: 5, thresholdKey: "build.no_plan_days", stuck: false });
     expect(d.action).toEqual({ text: "Approve plan plan/0001-example.md", href: `${GH}/fernhill-flow/blob/main/plan/0001-example.md` });
-    expect(d.clockStart).toBe(daysAgo(8));
+    expect(d.clockStart).toBe(daysAgo(8)); // in Build since the spec was accepted
+    expect(d.waitStart).toBe(daysAgo(1)); // waiting since the plan was proposed
+    expect(d).toMatchObject({ days: 8, waitDays: 1 });
   });
 
   test("plan approved, no PR → In progress; the branch idle threshold applies", () => {

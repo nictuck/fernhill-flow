@@ -2,18 +2,13 @@
 // nothing waits. Each row: who · action · meta.
 
 import type { NeedsYou as NeedsYouData, NeedsYouItem } from "../engine/types.ts";
-import { roleLabel, stateParts } from "../engine/index.ts";
+import { incidentSlug, plural, roleLabel, stateParts } from "../engine/index.ts";
 import { Link } from "../router.ts";
 import { ActionLine } from "./ActionLine.tsx";
 import { Badge } from "./Badge.tsx";
-import { plural } from "./format.ts";
 
 function capitalize(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
-}
-
-function incidentSlug(path: string): string {
-  return path.replace(/^.*\//, "").replace(/\.md$/, "");
 }
 
 function Row({ item, now }: { item: NeedsYouItem; now: string }) {
@@ -21,7 +16,7 @@ function Row({ item, now }: { item: NeedsYouItem; now: string }) {
   if (item.kind === "incident") {
     return (
       <div className="row">
-        <span className="who">Incident {incidentSlug(item.incident.path)}</span>
+        <span className="who">Incident {incidentSlug(item.incident)}</span>
         <span className="what">
           <ActionLine action={item.action} />
         </span>

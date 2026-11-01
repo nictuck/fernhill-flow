@@ -31,6 +31,7 @@ describe.each([...THRESHOLD_KEYS])("%s", (key) => {
   test(`exactly ${limit} days: not stuck, limit and key reported`, () => {
     const d = derive(scenarios[key](limit), NOW)[0]!;
     expect(d.stuck).toBe(false);
+    expect(d.waitDays).toBe(limit);
     expect(d.limit).toBe(limit);
     expect(d.thresholdKey).toBe(key);
   });
@@ -38,8 +39,17 @@ describe.each([...THRESHOLD_KEYS])("%s", (key) => {
   test(`${limit + 1} days: stuck`, () => {
     const d = derive(scenarios[key](limit + 1), NOW)[0]!;
     expect(d.stuck).toBe(true);
+    expect(d.waitDays).toBe(limit + 1);
     expect(d.limit).toBe(limit);
     expect(d.thresholdKey).toBe(key);
+  });
+
+  test("stuck is exactly waitDays > limit — the number the card shows", () => {
+    for (const n of [0, limit - 1, limit, limit + 1, limit + 5]) {
+      if (n < 0) continue;
+      const d = derive(scenarios[key](n), NOW)[0]!;
+      expect(d.stuck).toBe(d.waitDays > d.limit!);
+    }
   });
 
   test("raising the threshold in config un-sticks it with no code change", () => {
@@ -72,10 +82,20 @@ describe("secondary measurements", () => {
     expect(rowOver).toMatchObject({ kind: "incident", stuck: true, limit });
   });
 
-  test("days on the card is measured from the stage clock even when stuck is measured elsewhere", () => {
-    // Test clock = PR opened (n + 2 days ago); stuck = days since last push (n).
+  test("time in stage (days) is the stage clock; the wait (waitDays) is what stuck compares", () => {
+    // Test clock = PR opened (n + 2 days ago); the wait = days since last push (n).
     const d = derive(scenario.testPr("green", 3), NOW)[0]!;
     expect(d.days).toBe(5);
+    expect(d.waitDays).toBe(3);
     expect(d.stuck).toBe(true);
+    expect(d.stuck).toBe(d.waitDays > d.limit!);
+  });
+
+  test("when the wait began with the stage, waitStart is the clock", () => {
+    for (const snap of [scenario.planPr(2), scenario.designNoSpec(2), scenario.buildNoRepo(2), scenario.buildNoPlan(2)]) {
+      const d = derive(snap, NOW)[0]!;
+      expect(d.waitStart).toBe(d.clockStart);
+      expect(d.waitDays).toBe(d.days);
+    }
   });
 });
