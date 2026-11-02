@@ -6,7 +6,8 @@
 # Exception: `gh pr merge N … --body "… EX-NNN …"` is allowed when that
 # exception, read from the platform repo's main through the GitHub API, is
 # active, unexpired, grants `merge`, lists this repo, and the PR changes no
-# guardrail paths. Nothing else is ever delegated. (PreToolUse: Bash)
+# guardrail paths — or it also grants `merge-guardrails` and the merge body
+# lists the guardrail files. Nothing else is ever delegated. (PreToolUse: Bash)
 set -u
 source "$(dirname "$0")/lib.sh"
 
@@ -55,7 +56,14 @@ exception_covers_pr() { # exception_covers_pr <id> <segment> → 0 if it lists t
   printf '%s\n' "$text" | sed -n 's/^repos: *//p' | tr -d '[]' | tr ',' '\n' | sed 's/^ *//;s/ *$//' | grep -qx "$repo" \
     || { echo "no-merge: $id does not list repo '$repo'" >&2; return 1; }
   if printf '%s\n' "$files" | grep -Eq "$GUARDRAIL_PATHS"; then
-    echo "no-merge: PR #$pr changes guardrails (.claude/, .github/, exceptions/, personas/, CODEOWNERS, REVIEW.md); no exception covers that — a human merges it" >&2
+    # Guardrail changes need the explicit `merge-guardrails` grant (EX-002),
+    # and the merge body must list the guardrail files it touches.
+    if exception_grants "$id" merge-guardrails; then
+      printf '%s' "$seg" | grep -Eq 'guardrails:' \
+        || { echo "no-merge: PR #$pr changes guardrails; under $id the merge body must list them: --body '… · guardrails: <paths>' (no ';' or '|' in the body — the hook splits commands on those)" >&2; return 1; }
+      return 0
+    fi
+    echo "no-merge: PR #$pr changes guardrails (.claude/, .github/, exceptions/, personas/, CODEOWNERS, REVIEW.md); $id does not grant merge-guardrails — a human merges it" >&2
     return 1
   fi
   return 0
@@ -74,6 +82,7 @@ if [ "${1:-}" = "--test" ]; then
   printf -- '---\nid: EX-003\nstatus: revoked\ngrants: [merge]\n%s\nexpires: %s\n---\n' "$repos" "$tomorrow" > "$tmp/EX-003-revoked.md"
   printf -- '---\nid: EX-004\nstatus: active\ngrants: [approve-plan]\n%s\nexpires: %s\n---\n' "$repos" "$tomorrow" > "$tmp/EX-004-other-grant.md"
   printf -- '---\nid: EX-005\nstatus: active\ngrants: [merge]\n%s\n---\n' "$repos" > "$tmp/EX-005-no-expiry.md"
+  printf -- '---\nid: EX-006\nstatus: active\ngrants: [merge, merge-guardrails]\n%s\nexpires: %s\n---\n' "$repos" "$tomorrow" > "$tmp/EX-006-guardrails.md"
   HOOK_TEST_ARGS="--fixtures $tmp fernhill-flow $files"
   ok="--squash --body Merged under EX-001 after /review: ok"
   # always blocked
@@ -115,6 +124,9 @@ if [ "${1:-}" = "--test" ]; then
   run_case 2 "merge of a guardrail change"    "$(bash_cmd_json "gh pr merge 5 $ok")" || fail=1
   printf '.github/workflows/ci.yml\n' > "$files"
   run_case 2 "merge of a workflow change"     "$(bash_cmd_json "gh pr merge 5 $ok")" || fail=1
+  run_case 2 "guardrail merge w/o file list"  "$(bash_cmd_json 'gh pr merge 5 --squash --body "Merged under EX-006 after /review: x"')" || fail=1
+  run_case 0 "guardrail merge under EX-006"   "$(bash_cmd_json 'gh pr merge 5 --squash --body "Merged under EX-006 after /review: x · guardrails: .github/workflows/ci.yml"')" || fail=1
+  run_case 2 "guardrail merge --admin"        "$(bash_cmd_json 'gh pr merge 5 --squash --admin --body "Merged under EX-006 · guardrails: .github/workflows/ci.yml"')" || fail=1
   printf 'src/a.ts\n' > "$files"
   HOOK_TEST_ARGS="--fixtures $tmp some-other-repo $files"
   run_case 2 "merge in a repo not listed"     "$(bash_cmd_json "gh pr merge 5 $ok")" || fail=1
