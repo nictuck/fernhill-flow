@@ -6,8 +6,12 @@
 #
 # Only this workflow moves `production`, and only after the release manager
 # approves the `production` environment (gate 5). The approval, approver and
-# commit are recorded as a GitHub deployment. Every build writes
-# version.txt = commit sha, which is how the pipeline knows a deploy is live.
+# commit are recorded as a GitHub deployment. When an active exception on the
+# platform's main delegates gate 5 (`release` grant), nobody approves: a
+# product's production then moves only once a release record on the
+# platform's main names the commit (docs/flow.md → releases/NNNN-vX.Y.Z.md).
+# Every build writes version.txt = commit sha, which is how the pipeline
+# knows a deploy is live.
 name: release
 
 on:
@@ -94,7 +98,7 @@ jobs:
       !cancelled() && needs.resolve.result == 'success' && needs.resolve.outputs.site != ''
       && (needs.staging.result == 'success' || needs.staging.result == 'skipped')
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25    # two waits of WAIT_ATTEMPTS × 15 s (record, then Netlify) must both fit
     permissions:
       contents: write      # the only job that pushes, and only to refs/heads/production
       deployments: write
@@ -113,6 +117,7 @@ jobs:
       # unless the platform's main holds an active exception granting
       # `release` (docs/flow.md → Exceptions), which is then the recorded reason.
       - name: Refuse to run without a configured production gate
+        id: gate
         env:
           GH_TOKEN: ${{ github.token }}
           PLATFORM_REPO: nictuck/fernhill-platform
@@ -137,7 +142,53 @@ jobs:
             echo "::error::the 'production' environment has no required reviewer and no active exception on $PLATFORM_REPO main grants 'release'. Configure the reviewer (Settings → Environments → production) or merge an exception, then re-run."
             exit 1
           fi
+          echo "delegated=$delegated" >> "$GITHUB_OUTPUT"
           echo "::warning::release gate: delegated under $delegated (no required reviewer; the exception on the platform's main is the recorded authorization)"
+      # Under a delegated gate no person approves, so the release record is the
+      # gate's evidence and must exist before production moves: a
+      # releases/NNNN-vX.Y.Z.md on the platform's main whose frontmatter names
+      # this repo (product:) and this exact commit (commit:) with status
+      # proposed or authorized. /review writes it right after the merge; this
+      # job waits for it the way `staging` waits for Netlify. The platform's
+      # own front door has no intent and no record: it is the one site that
+      # releases on the exception id alone, and says so. The exemption is
+      # keyed on the repo's identity (the hardcoded anchor), never on a file
+      # in the repo being released.
+      - name: Under a delegated gate, hold until a release record names this commit
+        if: steps.gate.outputs.delegated != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PLATFORM_REPO: nictuck/fernhill-platform
+          DELEGATED: ${{ steps.gate.outputs.delegated }}
+        run: |
+          if [ "$GITHUB_REPOSITORY" = "$PLATFORM_REPO" ]; then
+            echo "::warning::release gate: $GITHUB_REPOSITORY is the platform; its front door releases under $DELEGATED with no release record"
+            exit 0
+          fi
+          repo="${GITHUB_REPOSITORY#*/}"
+          # one frontmatter value: first match, trailing comment and quotes dropped
+          field() { printf '%s\n' "$1" | sed -n "s/^$2: *//p" | head -1 | sed 's/[[:space:]]*#.*$//' | tr -d '"' | sed 's/[[:space:]]*$//'; }
+          echo "waiting for a record on $PLATFORM_REPO main: releases/NNNN-vX.Y.Z.md with product: $repo, commit: $SHA, status: proposed|authorized"
+          seen=""   # blob shas already read and found not to match; a record is fetched again only when it changes
+          for i in $(seq 1 "$WAIT_ATTEMPTS"); do
+            listing=$(gh api "repos/$PLATFORM_REPO/contents/releases?ref=main" --jq '.[] | "\(.name) \(.sha)"') || echo "::warning::could not list $PLATFORM_REPO/releases on main (attempt $i); the gate stays closed until it can be read"
+            while read -r f blob; do
+              printf '%s' "$f" | grep -Eq '^[0-9]{4}-v[0-9]+\.[0-9]+\.[0-9]+\.md$' || continue
+              case " $seen " in *" $blob "*) continue;; esac
+              text=$(gh api "repos/$PLATFORM_REPO/contents/releases/$f?ref=main" --jq .content 2>/dev/null | base64 -d) || continue
+              seen="$seen $blob"
+              fm=$(printf '%s\n' "$text" | awk 'NR==1 && $0=="---"{f=1;next} f && $0=="---"{exit} f')
+              [ "$(field "$fm" product)" = "$repo" ] || continue
+              [ "$(field "$fm" commit)" = "$SHA" ] || continue
+              status=$(field "$fm" status)
+              case "$status" in proposed|authorized) ;; *) continue;; esac
+              echo "::notice::release gate: delegated under $DELEGATED; evidence $PLATFORM_REPO/releases/$f (status: $status) names $SHA for $repo"
+              exit 0
+            done <<< "$listing"
+            echo "  attempt $i: no record on $PLATFORM_REPO main names $SHA for $repo yet"; sleep 15
+          done
+          echo "::error::no release record on $PLATFORM_REPO main names $SHA for $repo. Under $DELEGATED the record is the gate's evidence: run /release on the platform (releases/NNNN-vX.Y.Z.md with product: $repo, commit: $SHA, status: proposed), merge it, then re-run this job."
+          exit 1
       - name: Fast-forward the production branch (triggered by ${{ github.actor }}; approver is on the deployment record)
         run: |
           git fetch origin production || true
