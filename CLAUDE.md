@@ -30,8 +30,14 @@ Fernhill product for intent 0001 — the Flow dashboard. The process is
   pointer, so staging cannot rehearse it), in a quiet window with no
   `release` run in progress: publish it, confirm `version.txt`, re-publish
   the current deploy, confirm auto publishing is back on (no "Start auto
-  publishing" on the Deploys page), and note the result here. Not yet
-  rehearsed (`releases/0001-v0.1.0.md`, F2).
+  publishing" on the Deploys page), and note the result here. Rehearsed
+  2026-11-02 21:15–21:25Z by the release manager (F2): each Publish
+  deploy switched the live site within seconds; the re-publish first
+  picked the deploy-preview-5 build from the top of the list (`0bb8a18`)
+  before the v0.1.0 production deploy `6ae8e44c5983b090a06d322b`
+  (`33cff4c`) was published again at 21:24:44Z — pick the deploy by id
+  or by the Production label, not from the top of the list. Verified
+  21:26Z: `version.txt` = `33cff4c…`, deploy not locked.
 
 ## How it works
 
