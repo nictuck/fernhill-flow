@@ -23,9 +23,11 @@ permissions:
   contents: read
   deployments: write
 
+# A newer push to main supersedes a run still waiting for approval; otherwise
+# one forgotten approval silently blocks every later release.
 concurrency:
   group: release
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 env:
   WAIT_ATTEMPTS: 40   # × 15 s = 10 min per Netlify wait
@@ -107,17 +109,35 @@ jobs:
         with:
           fetch-depth: 0
       # Environments do not copy from a template repo. If this repo's gate was
-      # never configured, refuse to release rather than release unguarded.
+      # never configured, refuse to release rather than release unguarded —
+      # unless the platform's main holds an active exception granting
+      # `release` (docs/flow.md → Exceptions), which is then the recorded reason.
       - name: Refuse to run without a configured production gate
         env:
           GH_TOKEN: ${{ github.token }}
+          PLATFORM_REPO: nictuck/fernhill-platform
         run: |
           reviewers=$(gh api "repos/$GITHUB_REPOSITORY/environments/production" --jq '[.protection_rules[]? | select(.type=="required_reviewers")] | length' 2>/dev/null || echo 0)
-          if [ "${reviewers:-0}" -lt 1 ]; then
-            echo "::error::the 'production' environment has no required reviewer, so this release would be unapproved. Configure it (Settings → Environments → production → Required reviewers) and re-run."
+          if [ "${reviewers:-0}" -ge 1 ]; then
+            echo "production gate present ($reviewers reviewer rule); the approver is recorded on this deployment"
+            exit 0
+          fi
+          today=$(date -u +%F); delegated=""
+          for f in $(gh api "repos/$PLATFORM_REPO/contents/exceptions?ref=main" --jq '.[].name' 2>/dev/null | grep -E '^EX-[0-9]{3}-.*\.md$'); do
+            text=$(gh api "repos/$PLATFORM_REPO/contents/exceptions/$f?ref=main" --jq .content 2>/dev/null | base64 -d) || continue
+            fm=$(printf '%s\n' "$text" | awk 'NR==1 && $0=="---"{f=1;next} f && $0=="---"{exit} f')
+            id=$(printf '%s\n' "$fm" | sed -n 's/^id: *//p'); status=$(printf '%s\n' "$fm" | sed -n 's/^status: *//p')
+            expires=$(printf '%s\n' "$fm" | sed -n 's/^expires: *//p'); grants=$(printf '%s\n' "$fm" | sed -n 's/^grants: *//p')
+            [ "$status" = "active" ] || continue
+            printf '%s' "$expires" | grep -Eq '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' && [ "$expires" \> "$today" ] || [ "$expires" = "$today" ] || continue
+            printf '%s' "$grants" | tr -d '[]' | tr ',' '\n' | sed 's/^ *//;s/ *$//' | grep -qx release || continue
+            delegated="$id"; break
+          done
+          if [ -z "$delegated" ]; then
+            echo "::error::the 'production' environment has no required reviewer and no active exception on $PLATFORM_REPO main grants 'release'. Configure the reviewer (Settings → Environments → production) or merge an exception, then re-run."
             exit 1
           fi
-          echo "production gate present ($reviewers reviewer rule); the approver is recorded on this deployment"
+          echo "::warning::release gate: delegated under $delegated (no required reviewer; the exception on the platform's main is the recorded authorization)"
       - name: Fast-forward the production branch (triggered by ${{ github.actor }}; approver is on the deployment record)
         run: |
           git fetch origin production || true
