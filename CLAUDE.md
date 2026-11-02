@@ -24,8 +24,10 @@ Fernhill product for intent 0001 — the Flow dashboard. The process is
   (Deploys → pick one → Publish deploy); the board keeps rendering because
   snapshots are schema-versioned and keyed by deploy context; then press
   Refresh. Durable — revert PR on `main`, released through the gate.
-  Rehearse the fast path on staging before the first release and note the
-  result here.
+  Rehearse the fast path on production, against the previous real deploy
+  (branch deploys have no publish pointer, so staging cannot rehearse it):
+  publish it, confirm `version.txt`, re-publish the current deploy, and
+  note the result here. Not yet rehearsed (`releases/0001-v0.1.0.md`, F2).
 
 ## How it works
 
