@@ -1,7 +1,7 @@
 ---
 intent: "0001"
-status: proposed
-approved_by: ""
+status: approved
+approved_by: "agent under EX-002"
 ---
 
 # Plan: Flow dashboard v1
