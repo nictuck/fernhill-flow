@@ -1,0 +1,408 @@
+{
+  "schemaVersion": 1,
+  "collectedAt": "2026-11-01T21:13:23.013Z",
+  "config": {
+    "github_owner": "nictuck",
+    "platform_repo": "fernhill-platform",
+    "repos": [
+      {
+        "name": "fernhill-platform",
+        "site": "fernhillplatform",
+        "kind": "platform"
+      },
+      {
+        "name": "fernhill-flow",
+        "site": "fernhill-flow",
+        "kind": "product"
+      }
+    ],
+    "thresholds": {
+      "plan.pr_open_days": 3,
+      "design.no_spec_pr_days": 5,
+      "design.spec_pr_open_days": 3,
+      "build.no_repo_days": 5,
+      "build.no_plan_days": 5,
+      "build.branch_idle_days": 3,
+      "test.ci_red_days": 1,
+      "test.review_pending_days": 2,
+      "deploy.approval_pending_days": 2,
+      "maintain.untriaged_days": 1
+    },
+    "refresh": {
+      "interval_minutes": 10,
+      "floor_seconds": 60
+    },
+    "board": {
+      "done_days": 30
+    }
+  },
+  "platform": {
+    "intents": [
+      {
+        "id": "0001",
+        "title": "Flow dashboard",
+        "status": "accepted",
+        "author": "Nicholas Tucker",
+        "origin": "idea",
+        "product": "fernhill-flow",
+        "created": "2026-10-31",
+        "dir": "0001-flow-dashboard",
+        "url": "https://github.com/nictuck/fernhill-platform/tree/main/intent/0001-flow-dashboard",
+        "spec": {
+          "status": "accepted",
+          "flagged": 0,
+          "url": "https://github.com/nictuck/fernhill-platform/blob/main/intent/0001-flow-dashboard/spec.md",
+          "acceptedAt": "2026-11-01T20:12:10Z"
+        },
+        "acceptedAt": "2026-10-31T18:33:44Z"
+      }
+    ],
+    "exceptions": [
+      {
+        "id": "EX-001",
+        "status": "active",
+        "grants": [
+          "merge"
+        ],
+        "repos": [
+          "fernhill-platform",
+          "fernhill-product-template",
+          "fernhill-flow"
+        ],
+        "expires": "2026-11-30",
+        "authorizedBy": "Nicholas Tucker",
+        "url": "https://github.com/nictuck/fernhill-platform/blob/main/exceptions/EX-001-agent-merges-during-platform-build.md",
+        "granted": "2026-10-31"
+      }
+    ],
+    "incidents": [],
+    "personas": [
+      {
+        "id": "compliance",
+        "enabled": true
+      },
+      {
+        "id": "security-lead",
+        "enabled": true
+      },
+      {
+        "id": "tech-lead",
+        "enabled": true
+      },
+      {
+        "id": "tech-reviewer",
+        "enabled": true
+      },
+      {
+        "id": "ux",
+        "enabled": true
+      }
+    ]
+  },
+  "repos": [
+    {
+      "name": "fernhill-platform",
+      "kind": "platform",
+      "site": "fernhillplatform",
+      "url": "https://github.com/nictuck/fernhill-platform",
+      "mainCi": "green",
+      "staging": {
+        "url": "https://main--fernhillplatform.netlify.app",
+        "version": "b63120798fc18f7e2edae911d30b1983f4e82e90"
+      },
+      "production": {
+        "url": "https://fernhillplatform.netlify.app",
+        "error": "HTTP 404"
+      },
+      "prs": [
+        {
+          "number": 9,
+          "url": "https://github.com/nictuck/fernhill-platform/pull/9",
+          "title": "new-product: require the fernhill- repo prefix; allow PRODUCTS_DIR override",
+          "branch": "platform/new-product-guards",
+          "class": "docs",
+          "state": "merged",
+          "sameRepo": true,
+          "author": "nictuck",
+          "createdAt": "2026-11-01T20:54:22Z",
+          "updatedAt": "2026-11-01T21:06:13Z",
+          "headSha": "5ca0fff3eb6ff57dc83a89764a169485fe27ec33",
+          "ci": "none",
+          "mergedAt": "2026-11-01T21:06:10Z",
+          "mergeCommit": "b63120798fc18f7e2edae911d30b1983f4e82e90"
+        },
+        {
+          "number": 8,
+          "url": "https://github.com/nictuck/fernhill-platform/pull/8",
+          "title": "intent 0001: link product fernhill-flow",
+          "branch": "link/0001-flow",
+          "class": "docs",
+          "state": "merged",
+          "sameRepo": true,
+          "author": "nictuck",
+          "createdAt": "2026-11-01T20:51:29Z",
+          "updatedAt": "2026-11-01T21:02:57Z",
+          "headSha": "9e2f297d399ab5b859a939e7ecf6a7f50bed518a",
+          "ci": "none",
+          "mergedAt": "2026-11-01T21:02:55Z",
+          "mergeCommit": "6f6c56489033d1a37779df1fc21f6023290ed543"
+        },
+        {
+          "number": 7,
+          "url": "https://github.com/nictuck/fernhill-platform/pull/7",
+          "title": "spec 0001: amend revalidation trigger, link allowlist location, loading copy",
+          "branch": "design/0001-amend-revalidation",
+          "class": "spec",
+          "state": "open",
+          "sameRepo": true,
+          "author": "nictuck",
+          "createdAt": "2026-11-01T20:49:47Z",
+          "updatedAt": "2026-11-01T20:50:04Z",
+          "headSha": "a9be266a3224ef5648bcec09fb5d011d8d961115",
+          "ci": "green",
+          "intent": "0001",
+          "ciUrl": "https://github.com/nictuck/fernhill-platform/runs/124974454558"
+        },
+        {
+          "number": 6,
+          "url": "https://github.com/nictuck/fernhill-platform/pull/6",
+          "title": "Review fixes: release pipeline correctness and hook hardening",
+          "branch": "platform/release-review-fixes",
+          "class": "docs",
+          "state": "merged",
+          "sameRepo": true,
+          "author": "nictuck",
+          "createdAt": "2026-10-31T20:01:58Z",
+          "updatedAt": "2026-10-31T22:09:27Z",
+          "headSha": "c8d7223f96a32231af6727c26e2628282603f015",
+          "ci": "none",
+          "mergedAt": "2026-10-31T22:09:13Z",
+          "mergeCommit": "784d5857cc5f033b32822bd5ca267a9db633b4d5"
+        },
+        {
+          "number": 5,
+          "url": "https://github.com/nictuck/fernhill-platform/pull/5",
+          "title": "spec 0001: Flow dashboard",
+          "branch": "design/0001-flow-dashboard",
+          "class": "spec",
+          "state": "merged",
+          "sameRepo": true,
+          "author": "nictuck",
+          "createdAt": "2026-10-31T18:50:12Z",
+          "updatedAt": "2026-11-01T20:12:10Z",
+          "headSha": "53eb714d6e7885a68068711b134522f6dcb8e382",
+          "ci": "none",
+          "intent": "0001",
+          "mergedAt": "2026-11-01T20:12:10Z",
+          "mergeCommit": "60e73bdf4a48cc98da61253ddade3892d9c64d59",
+          "mergedBy": "nictuck"
+        },
+        {
+          "number": 4,
+          "url": "https://github.com/nictuck/fernhill-platform/pull/4",
+          "title": "EX-001: agent reviews and merges PRs during the platform build",
+          "branch": "platform/exception-agent-merges",
+          "class": "docs",
+          "state": "merged",
+          "sameRepo": true,
+          "author": "nictuck",
+          "createdAt": "2026-10-31T18:46:08Z",
+          "updatedAt": "2026-10-31T19:41:46Z",
+          "headSha": "635f274280a5fb51cc8efe3f890011c53b5105ee",
+          "ci": "none",
+          "mergedAt": "2026-10-31T19:41:46Z",
+          "mergeCommit": "32e1f02b5c6776e2071a78dab782ada93d93bee9"
+        },
+        {
+          "number": 3,
+          "url": "https://github.com/nictuck/fernhill-platform/pull/3",
+          "title": "Release pipeline: GitHub-gated production branch",
+          "branch": "platform/release-pipeline",
+          "class": "docs",
+          "state": "merged",
+          "sameRepo": true,
+          "author": "nictuck",
+          "createdAt": "2026-10-31T17:32:09Z",
+          "updatedAt": "2026-10-31T18:29:20Z",
+          "headSha": "f81779a8b6222075e044713270521e406d487f5e",
+          "ci": "none",
+          "mergedAt": "2026-10-31T18:29:10Z",
+          "mergeCommit": "b2886c1f159be3dd4b03e62aa9f765c787f7e207"
+        },
+        {
+          "number": 2,
+          "url": "https://github.com/nictuck/fernhill-platform/pull/2",
+          "title": "Netlify: publish public/ holding page",
+          "branch": "platform/netlify-publish-dir",
+          "class": "docs",
+          "state": "merged",
+          "sameRepo": true,
+          "author": "nictuck",
+          "createdAt": "2026-10-31T17:25:34Z",
+          "updatedAt": "2026-10-31T18:28:00Z",
+          "headSha": "9b2675b6f58c7048ff547927692fe913b302beac",
+          "ci": "none",
+          "mergedAt": "2026-10-31T18:27:51Z",
+          "mergeCommit": "23febf74c8d4a9155d20def0ec4f6d479a3bb4dd"
+        },
+        {
+          "number": 1,
+          "url": "https://github.com/nictuck/fernhill-platform/pull/1",
+          "title": "intent 0001: Flow dashboard",
+          "branch": "intent/0001-flow-dashboard",
+          "class": "intent",
+          "state": "merged",
+          "sameRepo": true,
+          "author": "nictuck",
+          "createdAt": "2026-10-31T17:08:06Z",
+          "updatedAt": "2026-10-31T18:34:09Z",
+          "headSha": "ee9aff2e5a459cab3cffa64bfa9ded61d490711c",
+          "ci": "none",
+          "intent": "0001",
+          "mergedAt": "2026-10-31T18:33:44Z",
+          "mergeCommit": "39387c2159914f8623fe2c443a93f6e3ed49d43c",
+          "mergedBy": "nictuck"
+        }
+      ],
+      "plans": [],
+      "releaseRuns": [
+        {
+          "id": 41350242358,
+          "url": "https://github.com/nictuck/fernhill-platform/actions/runs/41350242358",
+          "sha": "b63120798fc18f7e2edae911d30b1983f4e82e90",
+          "status": "queued",
+          "pendingApproval": false,
+          "createdAt": "2026-11-01T21:06:13Z"
+        },
+        {
+          "id": 41349948307,
+          "url": "https://github.com/nictuck/fernhill-platform/actions/runs/41349948307",
+          "sha": "6f6c56489033d1a37779df1fc21f6023290ed543",
+          "status": "completed",
+          "pendingApproval": false,
+          "createdAt": "2026-11-01T21:02:58Z",
+          "conclusion": "cancelled"
+        },
+        {
+          "id": 41345629838,
+          "url": "https://github.com/nictuck/fernhill-platform/actions/runs/41345629838",
+          "sha": "60e73bdf4a48cc98da61253ddade3892d9c64d59",
+          "status": "completed",
+          "pendingApproval": false,
+          "createdAt": "2026-11-01T20:12:12Z",
+          "conclusion": "cancelled"
+        },
+        {
+          "id": 41246873678,
+          "url": "https://github.com/nictuck/fernhill-platform/actions/runs/41246873678",
+          "sha": "784d5857cc5f033b32822bd5ca267a9db633b4d5",
+          "status": "completed",
+          "pendingApproval": false,
+          "createdAt": "2026-10-31T22:09:16Z",
+          "conclusion": "cancelled"
+        },
+        {
+          "id": 41235422692,
+          "url": "https://github.com/nictuck/fernhill-platform/actions/runs/41235422692",
+          "sha": "32e1f02b5c6776e2071a78dab782ada93d93bee9",
+          "status": "completed",
+          "pendingApproval": false,
+          "createdAt": "2026-10-31T19:41:48Z",
+          "conclusion": "cancelled"
+        },
+        {
+          "id": 41230021199,
+          "url": "https://github.com/nictuck/fernhill-platform/actions/runs/41230021199",
+          "sha": "39387c2159914f8623fe2c443a93f6e3ed49d43c",
+          "status": "completed",
+          "pendingApproval": false,
+          "createdAt": "2026-10-31T18:33:46Z",
+          "conclusion": "cancelled"
+        },
+        {
+          "id": 41229640727,
+          "url": "https://github.com/nictuck/fernhill-platform/actions/runs/41229640727",
+          "sha": "b2886c1f159be3dd4b03e62aa9f765c787f7e207",
+          "status": "waiting",
+          "pendingApproval": true,
+          "createdAt": "2026-10-31T18:29:13Z"
+        }
+      ],
+      "buildBranches": [],
+      "mainHead": "b63120798fc18f7e2edae911d30b1983f4e82e90",
+      "productionHead": "91d2bd47eec29449f314ff5f39ffa13beab41d9a",
+      "productionBehindMain": {
+        "count": 27,
+        "since": "2026-10-31T17:08:03Z"
+      }
+    },
+    {
+      "name": "fernhill-flow",
+      "kind": "product",
+      "site": "fernhill-flow",
+      "url": "https://github.com/nictuck/fernhill-flow",
+      "mainCi": "running",
+      "staging": {
+        "url": "https://main--fernhill-flow.netlify.app",
+        "version": "d6263fc27887914c8b0980e49414e9784650ccca"
+      },
+      "production": {
+        "url": "https://fernhill-flow.netlify.app",
+        "version": "f8a85582ef6e41ebf47060d2403d1e8919ce70f6"
+      },
+      "prs": [
+        {
+          "number": 1,
+          "url": "https://github.com/nictuck/fernhill-flow/pull/1",
+          "title": "setup: link to intent 0001",
+          "branch": "setup/0001",
+          "class": "docs",
+          "state": "merged",
+          "sameRepo": true,
+          "author": "nictuck",
+          "createdAt": "2026-11-01T20:51:19Z",
+          "updatedAt": "2026-11-01T21:03:05Z",
+          "headSha": "e1a0e0611d9c4ad5fec05de4f18655e9290e478e",
+          "ci": "none",
+          "mergedAt": "2026-11-01T21:03:02Z",
+          "mergeCommit": "d6263fc27887914c8b0980e49414e9784650ccca"
+        }
+      ],
+      "plans": [],
+      "releaseRuns": [
+        {
+          "id": 41349958898,
+          "url": "https://github.com/nictuck/fernhill-flow/actions/runs/41349958898",
+          "sha": "d6263fc27887914c8b0980e49414e9784650ccca",
+          "status": "waiting",
+          "pendingApproval": true,
+          "createdAt": "2026-11-01T21:03:05Z"
+        },
+        {
+          "id": 41348974503,
+          "url": "https://github.com/nictuck/fernhill-flow/actions/runs/41348974503",
+          "sha": "f8a85582ef6e41ebf47060d2403d1e8919ce70f6",
+          "status": "completed",
+          "pendingApproval": false,
+          "createdAt": "2026-11-01T20:51:18Z",
+          "conclusion": "success"
+        }
+      ],
+      "buildBranches": [],
+      "mainHead": "d6263fc27887914c8b0980e49414e9784650ccca",
+      "productionHead": "f8a85582ef6e41ebf47060d2403d1e8919ce70f6",
+      "productionBehindMain": {
+        "count": 1,
+        "since": "2026-11-01T21:03:01Z"
+      }
+    }
+  ],
+  "stats": {
+    "calls": 31,
+    "durationMs": 2597,
+    "rateLimitRemaining": 4981
+  },
+  "warnings": [
+    "site https://fernhillplatform.netlify.app: HTTP 404"
+  ]
+}

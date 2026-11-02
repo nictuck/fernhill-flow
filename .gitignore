@@ -7,3 +7,14 @@ build/
 .env
 .env.*
 .claude/settings.local.json
+
+# local tooling (never committed; .claude/ is a guardrail path)
+.claude/launch.json
+.claude/settings.local.json
+
+# build and runtime
+node_modules/
+dist/
+.netlify/
+*.log
+deno.lock
