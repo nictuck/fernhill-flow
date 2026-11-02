@@ -44,4 +44,9 @@ Input: $ARGUMENTS (PR number; optional `owner/repo`, default: the current repo)
    `gh pr merge N --squash --delete-branch --body "Merged under EX-NNN after /review: <one line>"`
    (the hook requires the EX id in the command). Otherwise do not merge.
 7. **Report**: class, verdicts, Important count, merged or who must act
-   and why, with the PR URL.
+   and why, with the PR URL. If you merged in a product repo and the
+   exception also grants `release`, gate 5 is delegated and the product's
+   `release` run is now waiting for a record: report the merge sha
+   (`gh pr view N --json mergeCommit --jq .mergeCommit.oid`) and say
+   "run `/release <id> <version>` on the platform now; the run holds ten
+   minutes for the record" (platform `.claude/skills/release/SKILL.md`).

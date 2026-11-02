@@ -19,13 +19,25 @@ Fernhill product for intent 0001 — the Flow dashboard. The process is
 - Staging: `https://main--fernhill-flow.netlify.app` (every merge).
   Production: `https://fernhill-flow.netlify.app` (the `production`
   branch, moved by the `release` workflow after the release manager
-  approves).
+  approves or, under a delegated gate, once a release record on the
+  platform's `main` names the commit).
 - Rollback: fast — release manager publishes a previous deploy in Netlify
   (Deploys → pick one → Publish deploy); the board keeps rendering because
   snapshots are schema-versioned and keyed by deploy context; then press
   Refresh. Durable — revert PR on `main`, released through the gate.
-  Rehearse the fast path on staging before the first release and note the
-  result here.
+  The release manager rehearses the fast path in Netlify, on production,
+  against the previous real deploy (branch deploys have no publish
+  pointer, so staging cannot rehearse it), in a quiet window with no
+  `release` run in progress: publish it, confirm `version.txt`, re-publish
+  the current deploy, confirm auto publishing is back on (no "Start auto
+  publishing" on the Deploys page), and note the result here. Rehearsed
+  2026-11-02 21:15–21:25Z by the release manager (F2): each Publish
+  deploy switched the live site within seconds; the re-publish first
+  picked the deploy-preview-5 build from the top of the list (`0bb8a18`)
+  before the v0.1.0 production deploy `6ae8e44c5983b090a06d322b`
+  (`33cff4c`) was published again at 21:24:44Z — pick the deploy by id
+  or by the Production label, not from the top of the list. Verified
+  21:26Z: `version.txt` = `33cff4c…`, deploy not locked.
 
 ## How it works
 
